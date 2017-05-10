@@ -4,7 +4,7 @@ from toscaparser.tosca_template import ToscaTemplate
 import ruamel.yaml
 import requests
 
-DOCKERFINDER_URL = 'http://black.di.unipi.it/search'
+DOCKERFINDER_URL = 'http://131.114.2.77/search'
 
 
 def _is_abstract(node):

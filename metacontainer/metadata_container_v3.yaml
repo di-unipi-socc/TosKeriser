@@ -26,6 +26,6 @@ topology_template:
           software:
             nodejs: 6
             python: 3
-          size: '< 300 MB'
-          pulls: '> 5'
+          size: '<=300 MB'
+          pulls: '>= 5'
           stars: '> 0'
