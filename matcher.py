@@ -4,7 +4,10 @@ from toscaparser.tosca_template import ToscaTemplate
 import ruamel.yaml
 import requests
 
-DOCKERFINDER_URL = 'http://131.114.2.77/search'
+# DOCKERFINDER_URL = 'http://131.114.2.77/search'
+# DOCKERFINDER_URL = 'http://127.0.0.1:3000/search'
+DOCKERFINDER_URL = 'http://black.di.unipi.it'
+SEARCH_ENDPOINT = '/search'
 
 
 def _is_abstract(node):
@@ -58,8 +61,10 @@ def _build_query(metadata):
         op, rest = parse_op(s)
         return op, int(rest)
 
-    query = {'sort': 'pulls',
-             'sort': 'stars'}  # , 'select': 'name'
+    query = {'sort': 'stars',
+             'sort': '-size',
+             'sort': 'pulls',
+             'size_gt': 0}
     if 'software' in metadata:
         for k, v in metadata['software'].items():
             query[k.lower()] = v
@@ -89,9 +94,11 @@ def _build_query(metadata):
 
 
 def _request(query):
-    ret = requests.get(DOCKERFINDER_URL, params=query,
+    url = DOCKERFINDER_URL + SEARCH_ENDPOINT
+    ret = requests.get(url, params=query,
                        headers={'Accept': 'applicaiton/json',
                                 'Content-type': 'application/json'})
+    print_('DEBUG', 'url:', ret.url)
     return ret.json()['images']
 
 
@@ -124,7 +131,12 @@ def _write_updates(tosca, new_path):
                                     width=10000,
                                     indent=2, block_seq_indent=2,
                                     line_break=False)
-        # yaml.dump(tosca.tpl, f, default_flow_style=False)
+
+
+def _gen_new_path(tosca):
+    return '{}/{}.completed.yaml'.format(
+        '/'.join(tosca.path.split('/')[:-1]),
+        tosca.input_path.split('/')[-1][:-5])
 
 
 def update_tosca(file_path):
@@ -145,9 +157,7 @@ def update_tosca(file_path):
                         errors.append(e.args[0])
 
     if len(errors) == 0:
-        base_path = '/'.join(tosca.path.split('/')[:-1]) + '/'
-        tosca_name = tosca.input_path.split('/')[-1][:-5]
-        new_path = base_path + tosca_name + '_UP.yaml'
+        new_path = _gen_new_path(tosca)
         _write_updates(tosca_yaml, new_path)
     else:
         print_('ERRORS:\n{}'.format('\n'.join(errors)))
