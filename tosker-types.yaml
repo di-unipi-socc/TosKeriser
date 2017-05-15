@@ -4,7 +4,7 @@ description: Definition of the custom types of TosKer.
 
 data_types:
   tosker.data.metadata:
-    version: 0.1.1
+    version: 1
     description: metadata for the container node
     properties:
       software:

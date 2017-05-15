@@ -36,12 +36,6 @@ def _build_query(metadata):
             raise Exception('in parsing {}: unit not recognise'.format(s))
 
     def parse_op(s):
-        # gt	/api/images?size__gt=200	Gets images with size > 200 bytes.
-        # gte	/api/images?size__gte=200	Gets images with size ≥ 200 bytes.
-        # lt	/api/images?size__lt=200	Gets images with size < 200 bytes.
-        # lte	/api/images?size__lte=200	Gets images with size ≤ 200 bytes.
-        # in	/api/images?size__in=30,200	Gets images with size 30 or 200 bytes
-        # nin   /api/images?size__nin=18,30	Gets images with size not 18, 30.
         if s.startswith('>='):
             return 'gte', s[2:]
         elif s.startswith('>'):
@@ -51,7 +45,7 @@ def _build_query(metadata):
         elif s.startswith('<'):
             return 'lt', s[1:]
         else:
-            raise Exception('in parsing {}: operator not recognise'.format(s))
+            raise Exception('In parsing {}: operator not recognise'.format(s))
 
     def parse_unit_limit(s):
         s = s.strip()
