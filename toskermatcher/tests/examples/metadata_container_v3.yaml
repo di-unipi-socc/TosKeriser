@@ -22,10 +22,6 @@ topology_template:
     nodejs:
       type: tosker.nodes.Container
       properties:
-        metadata:
-          software:
+        installed_sw:
             node: 6
             ruby: 2
-          size: '< 100 MB'
-          pulls: '>= 200'
-          stars: '> 5'
