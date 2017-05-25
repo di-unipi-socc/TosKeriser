@@ -85,6 +85,10 @@ topology_template:
       properties:
         ports:
           8080: { get_input: api_port }
+        installed_sw:
+          mvn: 3
+          java: 1.8
+          git: 1
       artifacts:
         my_image:
           file: maven:3.3-jdk-8
@@ -96,6 +100,10 @@ topology_template:
       properties:
         ports:
           3000: { get_input: gui_port }
+        installed_sw:
+          node: 6
+          npm: 3
+          git: 2
       artifacts:
         my_image:
           file: node:6

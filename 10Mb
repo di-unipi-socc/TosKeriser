@@ -1,0 +1,2 @@
+args ['toskermatcher/tests/examples/update_image1.yaml', '--constraints', 'size', '--debug']
+parsed: toskermatcher/tests/examples/update_image1.yaml, [], {'debug': True}, {'constraints': 'size'}
