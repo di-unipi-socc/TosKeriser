@@ -1,0 +1,4 @@
+# Include the license file
+include LICENSE.md
+include toskermatcher/*.yaml
+recursive-include toskermatcher/tests/examples *

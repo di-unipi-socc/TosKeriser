@@ -6,7 +6,7 @@ import requests
 
 # DOCKERFINDER_URL = 'http://131.114.2.77/search'
 # DOCKERFINDER_URL = 'http://127.0.0.1:3000/search'
-DOCKERFINDER_URL = 'http://black.di.unipi.it'
+DOCKERFINDER_URL = 'http://black.di.unipi.it:3000'
 SEARCH_ENDPOINT = '/search'
 
 
@@ -139,7 +139,7 @@ def _gen_new_path(tosca):
         tosca.input_path.split('/')[-1][:-5])
 
 
-def update_tosca(file_path):
+def _update_tosca(file_path):
     tosca = ToscaTemplate(file_path)
     tosca_yaml = ruamel.yaml.round_trip_load(open(file_path),
                                              preserve_quotes=True)
@@ -163,8 +163,12 @@ def update_tosca(file_path):
         print_('ERRORS:\n{}'.format('\n'.join(errors)))
 
 
-if __name__ == '__main__':
+def run():
     if len(argv) < 2:
         print_('few arguments')
         exit(-1)
-    update_tosca(argv[1])
+    _update_tosca(argv[1])
+
+
+if __name__ == '__main__':
+    run()
