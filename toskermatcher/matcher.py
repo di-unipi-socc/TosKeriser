@@ -407,7 +407,7 @@ def _parse_contraint(con):
 
 
 def run():
-    global _log
+    global _log, DOCKERFINDER_URL
     if len(argv) > 1:
         try:
             file_path, comps, flags, inputs = _parse_input(argv[1:])
@@ -447,11 +447,10 @@ def run():
         print_('policy must be "{}" or "{}"'.format(POLICY_TOP, POLICY_SIZE))
         exit(-1)
 
-    global DOCKERFINDER_URL
     DOCKERFINDER_URL = os.environ.get('DOCKERFINDER_URL', DOCKERFINDER_URL)
 
     try:
-        if file_path.endswith(('.zip', '.csar')):
+        if file_path.endswith(('.zip', '.csar', '.CSAR')):
             _log.debug('CSAR founded')
             csar_tmp_path, yaml_path = _unpack_csar(file_path)
             _update_tosca(yaml_path, yaml_path,
@@ -468,7 +467,7 @@ def run():
                           constraints=constraint,
                           interactive=flags.get('interactive', False))
     except Exception as e:
-        _log.error('error: {}'.format(traceback.format_exc()))
+        _log.debug('error: {}'.format(traceback.format_exc()))
         print_(' '.join(e.args))
 
 
