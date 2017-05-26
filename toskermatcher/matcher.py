@@ -152,22 +152,29 @@ def _request(query):
 
 
 def _choose_image(images, interactive=False):
+    def format_size(size):
+        return '{}MB'.format(size/1000/1000)
+
     if interactive:
+        # print_('\n')
         print_('{:<3}{:<30}{:>15}{:>15}{:>15}'.format(
                '#', 'NAME', 'SIZE', 'PULLS', 'STARS'))
         for index, image in enumerate(images[:10]):
-            print_('{1:<3}{0[name]:<30}{0[size]:>15}'
-                   '{0[pulls]:>15}{0[stars]:>15}'.format(image, index+1))
-
+            print_('{2:<3}{0[name]:<30}{1:>15}'
+                   '{0[pulls]:>15}{0[stars]:>15}'.format(
+                    image, format_size(image['size']), index+1))
+        # print_('\n')
         i = None
         while not isinstance(i, int):
             try:
                 i = int(input('select an image number ')) - 1
-                if i < 1 and i > 10:
-                    raise Exception
+                if i < 0 or i > len(images) - 1:
+                    _log.debug('not in range')
+                    raise Exception()
                 return images[i]
-            except Exception:
-                print_('must be a number')
+            except Exception as e:
+                i = None
+                print_('must be a number between 1 and {}'.format(len(images)))
     else:
         return images[0] if len(images) > 0 else None
 
@@ -339,9 +346,10 @@ def _parse_input(args):
     def get_value(i):
         value = []
         old_i = i
-        while i < len(args) and not p1.match(args[i]) and not p1.match(args[i]):
+        while i < len(args) and (not p1.match(args[i]) and
+                                 not p2.match(args[i])):
             i += 1
-        return ' '.join(args[old_i:i-1]), i-1
+        return ' '.join(args[old_i:i]), i
 
     i = 0
     while i < len(args):
@@ -403,7 +411,6 @@ def run():
     if len(argv) > 1:
         try:
             file_path, comps, flags, inputs = _parse_input(argv[1:])
-            # print_('parsed: {}, {}, {}, {}'.format(file_path, comps, flags, inputs))
         except Exception as e:
             print_(''.join(e.args))
             exit(-1)
@@ -424,6 +431,9 @@ def run():
     if flags.get('quiet', False):
         # TODO: implement quiet
         pass
+
+    _log.debug('input parameters: {}, {}, {}, {}'.format(
+        file_path, comps, flags, inputs))
 
     constraint = inputs.get('constraints', {})
     _log.debug('constraints {}'.format(constraint))
