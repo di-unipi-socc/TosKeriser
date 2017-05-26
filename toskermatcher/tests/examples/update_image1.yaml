@@ -23,5 +23,10 @@ topology_template:
       type: tosker.nodes.Container
       properties:
         installed_sw:
-            node: 6
-            ruby: 2
+          node: 6
+          ruby: 2
+      artifacts:
+        node_ruby:
+          type: tosker.artifacts.Image
+          file: node:6
+          repositories: docker_hub

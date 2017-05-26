@@ -21,7 +21,7 @@ topology_template:
 
     nodejs:
       type: tosker.nodes.Container
-      properties:
-        installed_sw:
-            node: 6
-            ruby: 2
+      artifacts:
+        image:
+          type: tosker.artifacts.Image
+          file:

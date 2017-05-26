@@ -21,8 +21,8 @@ setup(
     # https://packaging.python.org/en/latest/single_source_version.html
     version=__version__,
 
-    description='Tool to comples TosKer application description with suitable'
-                'Docker Images',
+    description='A tool to complete TosKer application description with'
+                'suitable Docker Images',
 
     long_description=long_description,
 
