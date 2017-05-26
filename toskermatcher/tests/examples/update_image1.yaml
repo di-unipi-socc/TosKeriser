@@ -24,7 +24,8 @@ topology_template:
       properties:
         installed_sw:
           node: 6
-          ruby: 2
+          # ruby: 2
+        os_distribution: debian
       artifacts:
         node_ruby:
           type: tosker.artifacts.Image

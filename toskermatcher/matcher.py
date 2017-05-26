@@ -109,8 +109,8 @@ def _build_query(properties, policy=None, constraints={}):
         for k, v in properties[PROPERTY_SW].items():
             query[k.lower()] = v
     if PROPERTY_OS in properties:
-        # TODO: implement distribution query
-        pass
+        query['distro'] = properties[PROPERTY_OS]
+
     if 'size' in constraints:
         try:
             _log.debug('size {}'.format(constraints['size']))
