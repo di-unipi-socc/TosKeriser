@@ -153,7 +153,7 @@ def _request(query):
     _log.debug('request done on url {}'.format(ret.url))
     json = ret.json()
     if 'images' in json:
-        return json['images']
+        return json
     raise Exception('Dockerfinder server error')
 
 
@@ -185,11 +185,15 @@ def _complete(node, node_yaml, tosca,
     query = _build_query(properties, policy, constraints)
     _log.debug('query {}'.format(query))
 
-    images = _request(query)
-    _log.debug('returned images..'.format(images))
+    responce = _request(query)
+    images = responce['images']
+    _log.debug('returned images..')
 
     if len(images) < 1:
         raise Exception('no image found for container "{}"'.format(node.name))
+
+    print_('founded {[count]} images for "{.name}"'
+           ' component'.format(responce, node))
 
     image = _choose_image(images, interactive)
 
@@ -438,6 +442,9 @@ def run():
     if policy is not None and policy != POLICY_TOP and policy != POLICY_SIZE:
         print_('policy must be "{}" or "{}"'.format(POLICY_TOP, POLICY_SIZE))
         exit(-1)
+
+    global DOCKERFINDER_URL
+    DOCKERFINDER_URL = os.environ.get('DOCKERFINDER_URL', DOCKERFINDER_URL)
 
     try:
         if file_path.endswith(('.zip', '.csar')):
