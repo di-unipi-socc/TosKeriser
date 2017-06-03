@@ -31,3 +31,11 @@ topology_template:
           type: tosker.artifacts.Image
           file: node:6
           repositories: docker_hub
+
+    nodejs2:
+      type: tosker.nodes.Container
+      artifacts:
+        node_ruby:
+          type: tosker.artifacts.Image
+          file: node:6
+          repositories: docker_hub

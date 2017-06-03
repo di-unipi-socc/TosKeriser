@@ -6,9 +6,12 @@ import os
 import zipfile
 import logging
 import traceback
+import sys
 from sys import argv
 from os import path
 from six import print_
+from six import StringIO
+from contextlib import contextmanager
 from . import __version__
 from toscaparser.tosca_template import ToscaTemplate
 from toscaparser.prereq.csar import CSAR
@@ -26,32 +29,52 @@ DOCKERFILE_TYPE = 'tosker.artifacts.Dockerfile'
 PROPERTY_SW = 'installed_sw'
 PROPERTY_OS = 'os_distribution'
 
-POLICY_TOP = 'top'
+POLICY_TOP = 'top_rated'
 POLICY_SIZE = 'size'
+POLICY_USED = 'most_used'
 
 _log = None
 
 
-def _is_abstract(node):
-    if node.type == 'tosker.nodes.Container':
-        # if the container has the metaporperties
+@contextmanager
+def _redirect_stdout(new_target):
+    old_target, sys.stdout = sys.stdout, new_target  # replace sys.stdout
+    try:
+        yield new_target  # run some code with the replaced stdout
+    finally:
+        sys.stdout = old_target  # restore to the previous value
+
+
+def _must_update(node, force):
+    def is_container(node):
+        return True if node.type == CONTAINER_TYPE else False
+
+    def has_metadata(node):
+        # if the container has the meta-properties
         if 'properties' in node.entity_tpl and\
             (PROPERTY_OS in node.entity_tpl['properties'] or
              PROPERTY_SW in node.entity_tpl['properties']):
             return True
+        return False
+
+    def has_not_image(node):
+        # if the container do not has the artifacts
+        if 'artifacts' not in node.entity_tpl:
+            return True
         else:
-            # if the container do not has the artifacts
-            if 'artifacts' not in node.entity_tpl:
+            # if the container has an artifacts of type image
+            # but do not has the file
+            _, value = list(node.entity_tpl['artifacts'].items())[0]
+            _log.debug('artifacts {}'.format(value))
+            if 'type' in value and\
+               IMAGE_TYPE == value['type'] and\
+               ('file' not in value or value['file'] is None):
                 return True
-            else:
-                # if the container has an artifacts of type image
-                # but do not has the file
-                _, value = list(node.entity_tpl['artifacts'].items())[0]
-                _log.debug('artifacts {}'.format(value))
-                if 'type' in value and\
-                   IMAGE_TYPE == value['type'] and\
-                   ('file' not in value or value['file'] is None):
-                    return True
+        return False
+
+    if is_container(node) and \
+       (has_not_image(node) or (force and has_metadata(node))):
+        return True
     return False
 
 
@@ -99,15 +122,17 @@ def _build_query(properties, policy=None, constraints={}):
         op, rest = parse_op(s)
         return op, int(rest)
 
-    query = {}
+    query = {'size_gt': 0}
     if POLICY_TOP == policy:
-        query['sort'] = ('stars', '-size', 'pulls')
+        query['sort'] = ('stars', 'pulls', '-size')
     if POLICY_SIZE == policy:
         query['sort'] = ('-size', 'stars', 'pulls')
+    if POLICY_USED == policy:
+        query['sort'] = ('pulls', 'stars', '-size')
 
     if PROPERTY_SW in properties:
         for k, v in properties[PROPERTY_SW].items():
-            query[k.lower()] = v
+            query[k.lower()] = v if v is not None else ''
     if PROPERTY_OS in properties:
         query['distro'] = properties[PROPERTY_OS]
 
@@ -222,7 +247,7 @@ def _write_updates(tosca, new_path):
 
 def _gen_new_path(file_path, mod):
     points = file_path.split('.')
-    return '{}.{}.{}'.format(''.join(points[:-1]), mod, points[-1])
+    return '{}.{}.{}'.format('.'.join(points[:-1]), mod, points[-1])
 
 
 def _check_components(tosca, components):
@@ -239,7 +264,7 @@ def _check_components(tosca, components):
 
 def _update_tosca(file_path, new_path,
                   components=[], policy=None,
-                  constraints={}, interactive=False):
+                  constraints={}, interactive=False, force=False):
     _log.debug('update TOSCA YAML file {} to {}'.format(file_path, new_path))
 
     tosca = ToscaTemplate(file_path)
@@ -257,7 +282,7 @@ def _update_tosca(file_path, new_path,
         if tosca.nodetemplates:
             for node in tosca.nodetemplates:
                 if len(components) == 0 or node.name in components:
-                    if _is_abstract(node):
+                    if _must_update(node, force):
                         to_complete = True
                         _log.debug('node {.name} is abstract'.format(node))
                         node_yaml = tosca_yaml['topology_template'][
@@ -305,12 +330,14 @@ COMONENT
   a ist of component to complete (by default all component are considered)
 
 OPTIONS
-  --debug               active debug mode
-  -q|--quiet            active quiet mode
-  -i|--interactive      active interactive mode
-  --constraints=value   constraint to give to DockerFinder
-                        (i.e. --constraints 'size<=100MB pulls>30 stars>10')
-  --policy=top|size     ordering of the images
+  --debug                              active debug mode
+  -q|--quiet                           active quiet mode
+  -i|--interactive                     active interactive mode
+  -f|--force                           force the update of all containers
+  --constraints=value                  constraint to give to DockerFinder
+                                       (e.g. --constraints 'size<=100MB pulls>30 stars>10')
+
+  --policy=top_rated|size|most_used    ordering of the images
 '''
 
 _FLAG = {
@@ -322,7 +349,9 @@ _FLAG = {
     '-v': 'version',
     '--version': 'version',
     '-i': 'interactive',
-    '--interactive': 'interactive'
+    '--interactive': 'interactive',
+    '-f': 'force',
+    '--force': 'force'
 }
 
 _PARAMS = ['--policy', '--constraints']
@@ -424,13 +453,12 @@ def run():
     if flags.get('version', False):
         print_(__version__)
         exit(0)
-    if flags.get('debug', False):
+
+    _log = _set_logger(logging.CRITICAL)
+    if flags.get('debug', False) and not flags.get('quiet', False):
         _log = _set_logger(logging.DEBUG)
-    else:
-        _log = _set_logger(logging.CRITICAL)
-    if flags.get('quiet', False):
-        # TODO: implement quiet
-        pass
+    elif flags.get('quiet', False):
+        old_target, sys.stdout = sys.stdout, StringIO()
 
     _log.debug('input parameters: {}, {}, {}, {}'.format(
         file_path, comps, flags, inputs))
@@ -443,8 +471,11 @@ def run():
 
     policy = inputs.get('policy', None)
     _log.debug('policy {}'.format(policy))
-    if policy is not None and policy != POLICY_TOP and policy != POLICY_SIZE:
-        print_('policy must be "{}" or "{}"'.format(POLICY_TOP, POLICY_SIZE))
+    if policy is not None and\
+       policy not in (POLICY_TOP, POLICY_SIZE, POLICY_USED):
+        print_('policy must be "{}", "{}" or "{}"'.format(POLICY_TOP,
+                                                          POLICY_SIZE,
+                                                          POLICY_USED))
         exit(-1)
 
     DOCKERFINDER_URL = os.environ.get('DOCKERFINDER_URL', DOCKERFINDER_URL)
@@ -456,7 +487,8 @@ def run():
             _update_tosca(yaml_path, yaml_path,
                           components=comps, policy=policy,
                           constraints=constraint,
-                          interactive=flags.get('interactive', False))
+                          interactive=flags.get('interactive', False),
+                          force=flags.get('force', False))
             new_path = _gen_new_path(file_path, 'completed')
             _pack_csar(csar_tmp_path, new_path)
         else:
@@ -465,10 +497,14 @@ def run():
             _update_tosca(file_path, new_path,
                           components=comps, policy=policy,
                           constraints=constraint,
-                          interactive=flags.get('interactive', False))
+                          interactive=flags.get('interactive', False),
+                          force=flags.get('force', False))
     except Exception as e:
         _log.debug('error: {}'.format(traceback.format_exc()))
         print_(' '.join(e.args))
+    finally:
+        if flags.get('quiet', False):
+            sys.stdout = old_target
 
 
 def _unpack_csar(file_path):
