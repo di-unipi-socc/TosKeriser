@@ -117,6 +117,7 @@ def _build_query(properties, policy=None, constraints={}):
         elif isinstance(f, string_types):
             return f
         else:
+            # TODO: implement functions
             op, value = list(f.items())[0]
             if 'equal' == op:
                 return value
@@ -181,7 +182,6 @@ def _build_query(properties, policy=None, constraints={}):
         query['sort'] = ('pulls', 'stars', '-size')
 
     _log.debug('properties {}'.format(properties))
-    # TODO: check software parsing
     for p in properties:
         if PROPERTY_SW in p:
             for s in p[PROPERTY_SW]:
