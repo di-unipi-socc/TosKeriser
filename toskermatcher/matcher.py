@@ -11,6 +11,7 @@ from sys import argv
 from os import path
 from six import print_
 from six import StringIO
+from six import string_types
 from contextlib import contextmanager
 from . import __version__
 from toscaparser.tosca_template import ToscaTemplate
@@ -23,11 +24,13 @@ DOCKERFINDER_URL = 'http://black.di.unipi.it:3000'
 SEARCH_ENDPOINT = '/search'
 
 CONTAINER_TYPE = 'tosker.nodes.Container'
+SOFTWARE_TYPE = 'tosker.nodes.Software'
 IMAGE_TYPE = 'tosker.artifacts.Image'
 DOCKERFILE_TYPE = 'tosker.artifacts.Dockerfile'
 
-PROPERTY_SW = 'installed_sw'
+PROPERTY_SW = 'supported_sw'
 PROPERTY_OS = 'os_distribution'
+REQUIREMENT_HOST = 'host'
 
 POLICY_TOP = 'top_rated'
 POLICY_SIZE = 'size'
@@ -45,35 +48,61 @@ def _redirect_stdout(new_target):
         sys.stdout = old_target  # restore to the previous value
 
 
+# def _get_node(nodes, name):
+#     l_node = (node for node in nodes if name == node.name)
+#     return l_node[0] if len(l_node) > 0 else None
+#
+#
+# def _exist_node(nodes, name):
+#     return _get_node(nodes, name) is not None
+
+
+def _get_host_requirements(node):
+    if hasattr(node, 'entity_tpl'):
+        node = node.entity_tpl
+    if 'requirements' in node:
+        for r in node['requirements']:
+            k, v = list(r.items())[0]
+            if REQUIREMENT_HOST == k:
+                return v
+    return None
+
+
 def _must_update(node, force):
-    def is_container(node):
-        return True if node.type == CONTAINER_TYPE else False
+    def is_software(node):
+        return True if node.type == SOFTWARE_TYPE else False
 
-    def has_metadata(node):
-        # if the container has the meta-properties
-        if 'properties' in node.entity_tpl and\
-            (PROPERTY_OS in node.entity_tpl['properties'] or
-             PROPERTY_SW in node.entity_tpl['properties']):
-            return True
-        return False
-
-    def has_not_image(node):
-        # if the container do not has the artifacts
-        if 'artifacts' not in node.entity_tpl:
-            return True
-        else:
-            # if the container has an artifacts of type image
-            # but do not has the file
-            _, value = list(node.entity_tpl['artifacts'].items())[0]
-            _log.debug('artifacts {}'.format(value))
-            if 'type' in value and\
-               IMAGE_TYPE == value['type'] and\
-               ('file' not in value or value['file'] is None):
+    def has_requirement_key(node, key):
+        requirement = _get_host_requirements(node)
+        if requirement is not None:
+            if key in requirement and\
+               requirement[key] is not None:
                 return True
         return False
 
-    if is_container(node) and \
-       (has_not_image(node) or (force and has_metadata(node))):
+    def has_nodefilter(node):
+        return has_requirement_key(node, 'node_filter')
+
+    def has_node(node):
+        return has_requirement_key(node, 'node')
+
+    # def has_not_image(node):
+    #     # # if the container do not has the artifacts
+    #     # if 'artifacts' not in node.entity_tpl:
+    #     #     return True
+    #     # else:
+    #     #     # if the container has an artifacts of type image
+    #     #     # but do not has the file
+    #     #     _, value = list(node.entity_tpl['artifacts'].items())[0]
+    #     #     _log.debug('artifacts {}'.format(value))
+    #     #     if 'type' in value and\
+    #     #        IMAGE_TYPE == value['type'] and\
+    #     #        ('file' not in value or value['file'] is None):
+    #     #         return True
+    #     # return False
+
+    if is_software(node) and \
+       (not has_node(node) or (force and has_nodefilter(node))):
         return True
     return False
 
@@ -81,6 +110,27 @@ def _must_update(node, force):
 def _build_query(properties, policy=None, constraints={}):
     policy = POLICY_TOP if policy is None else policy
     errors = []
+
+    def parse_functions(f):
+        if f is None:
+            return ''
+        elif isinstance(f, string_types):
+            return f
+        else:
+            op, value = list(f.items())[0]
+            if 'equal' == op:
+                return value
+            elif 'greater_or_equal' == op:
+                return value
+            elif 'greater_than' == op:
+                return value
+            elif 'less_than' == op:
+                return value
+            elif 'less_or_equal' == op:
+                return value
+            else:
+                raise Exception('in parsing {}: function not '
+                                'recognise'.format(f))
 
     def parse_unit(s):
         # bytes -> bytes
@@ -130,11 +180,21 @@ def _build_query(properties, policy=None, constraints={}):
     if POLICY_USED == policy:
         query['sort'] = ('pulls', 'stars', '-size')
 
-    if PROPERTY_SW in properties:
-        for k, v in properties[PROPERTY_SW].items():
-            query[k.lower()] = v if v is not None else ''
-    if PROPERTY_OS in properties:
-        query['distro'] = properties[PROPERTY_OS]
+    _log.debug('properties {}'.format(properties))
+    # TODO: check software parsing
+    for p in properties:
+        if PROPERTY_SW in p:
+            for s in p[PROPERTY_SW]:
+                k, v = list(s.items())[0]
+                try:
+                    query[k.lower()] = parse_functions(v)
+                except Exception as e:
+                    errors.append(e.args[0])
+        if PROPERTY_OS in p:
+            try:
+                query['distro'] = parse_functions(p[PROPERTY_OS])
+            except Exception as e:
+                errors.append(e.args[0])
 
     if 'size' in constraints:
         try:
@@ -204,10 +264,37 @@ def _choose_image(images, interactive=False):
         return images[0] if len(images) > 0 else None
 
 
-def _complete(node, node_yaml, tosca,
+def _update_yaml(node, nodes_yaml, image):
+    def format_software(image):
+        res = {}
+        for s in image['softwares']:
+            res[s['software']] = s['ver']
+        return res
+
+    container_name = '{}_container'.format(node.name)
+    req_node_yaml = _get_host_requirements(nodes_yaml[node.name])
+    req_node_yaml['node'] = container_name
+
+    nodes_yaml[container_name] = {
+        'type': 'tosker.nodes.Container',
+        'properties': {
+            PROPERTY_SW: format_software(image),
+            PROPERTY_OS: image['distro']
+        },
+        'artifacts': {
+            'my_image': {
+                'file': image['name'],
+                'type': 'tosker.artifacts.Image',
+                'repository': 'docker_hub'
+            }
+        }
+    }
+
+
+def _complete(node, nodes_yaml, tosca,
               policy=None, constraints=None, interactive=False):
-    properties = node.entity_tpl['properties']\
-                 if 'properties' in node.entity_tpl else {}
+    requirement = _get_host_requirements(node)
+    properties = requirement['node_filter']['properties']
     query = _build_query(properties, policy, constraints)
     _log.debug('query {}'.format(query))
 
@@ -223,13 +310,8 @@ def _complete(node, node_yaml, tosca,
 
     image = _choose_image(images, interactive)
 
-    node_yaml['artifacts'] = {
-        'my_image': {
-            'file': image['name'],
-            'type': 'tosker.artifacts.Image',
-            'repository': 'docker_hub'
-        }
-    }
+    _update_yaml(node, nodes_yaml, image)
+
     print_('complete node "{}" with image "{}" ({:.2f} MB, {} pulls, {} stars)'
            ''.format(node.name, image['name'],
                      image['size'] / 1000000, image['pulls'], image['stars']))
@@ -281,14 +363,13 @@ def _update_tosca(file_path, new_path,
     if hasattr(tosca, 'nodetemplates'):
         if tosca.nodetemplates:
             for node in tosca.nodetemplates:
+                nodes_yaml = tosca_yaml['topology_template']['node_templates']
                 if len(components) == 0 or node.name in components:
                     if _must_update(node, force):
                         to_complete = True
                         _log.debug('node {.name} is abstract'.format(node))
-                        node_yaml = tosca_yaml['topology_template'][
-                            'node_templates'][node.name]
                         try:
-                            _complete(node, node_yaml, tosca,
+                            _complete(node, nodes_yaml, tosca,
                                       policy, constraints, interactive)
                         except Exception as e:
                             _log.error('error: {}'.format(

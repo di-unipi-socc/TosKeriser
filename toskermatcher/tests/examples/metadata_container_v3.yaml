@@ -25,3 +25,4 @@ topology_template:
         installed_sw:
             node: 6
             ruby: 2
+        os_distribution: debian

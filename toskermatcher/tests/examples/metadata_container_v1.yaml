@@ -7,7 +7,7 @@ repositories:
   docker_hub: https://registry.hub.docker.com/
 
 imports:
-  - tosker: tosker-types.yaml
+  - tosker: ../../tosker-types.yaml
 
 topology_template:
   node_templates:
@@ -15,13 +15,12 @@ topology_template:
       type: tosker.nodes.Software
       requirements:
         - host:
-            node_filter:
-              properties:
-               - software: # non sò se questo si possa fare
-                  nodejs: { equal: 6 }
-               - size: { less_or_equal: 200 MB }
-               - pulls: { greater_or_equal: 200 }
-               - stars: { greater: 50 }
+           node_filter:
+             properties:
+               - supported_sw:
+                   - node: { equal: 6 }
+                   - ruby: { greater_or_equal: 2 }
+               - os_distribution: { equal: alpine }
       interfaces:
        Standard:
          start:
