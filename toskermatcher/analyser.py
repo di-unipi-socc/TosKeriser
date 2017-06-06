@@ -101,9 +101,9 @@ def _update_tosca(file_path, new_path,
     if len(errors) == 0 and to_complete:
         _write_updates(tosca_yaml, new_path)
     elif len(errors) > 0:
-        print_('ERRORS:\n{}'.format('\n'.join(errors)))
+        raise Exception('ERRORS:\n{}'.format('\n'.join(errors)))
     else:
-        print_('no abstract node founded')
+        raise Exception('no abstract node founded')
 
 
 def analyse_description(file_path, components=[], policy=None,
@@ -111,19 +111,23 @@ def analyse_description(file_path, components=[], policy=None,
                         df_host=CONST.DF_HOST):
     global _log
     _log = Logger.get(__name__)
-    if file_path.endswith(('.zip', '.csar', '.CSAR')):
-        _log.debug('CSAR founded')
-        csar_tmp_path, yaml_path = helper.unpack_csar(file_path)
-        _update_tosca(yaml_path, yaml_path,
-                      components=components, policy=policy,
-                      constraints=constraints, interactive=interactive,
-                      force=force, df_host=df_host)
-        new_path = _gen_new_path(file_path, 'completed')
-        helper.pack_csar(csar_tmp_path, new_path)
-    else:
-        _log.debug('YAML founded')
-        new_path = _gen_new_path(file_path, 'completed')
-        _update_tosca(file_path, new_path,
-                      components=components, policy=policy,
-                      constraints=constraints, interactive=interactive,
-                      force=force, df_host=df_host)
+
+    try:
+        if file_path.endswith(('.zip', '.csar', '.CSAR')):
+            _log.debug('CSAR founded')
+            csar_tmp_path, yaml_path = helper.unpack_csar(file_path)
+            _update_tosca(yaml_path, yaml_path,
+                          components, policy,
+                          constraints, interactive,
+                          force, df_host)
+            new_path = _gen_new_path(file_path, 'completed')
+            helper.pack_csar(csar_tmp_path, new_path)
+        else:
+            _log.debug('YAML founded')
+            new_path = _gen_new_path(file_path, 'completed')
+            _update_tosca(file_path, new_path,
+                          components, policy,
+                          constraints, interactive,
+                          force, df_host)
+    except Exception as e:
+        print_(', '.join(e.args))
