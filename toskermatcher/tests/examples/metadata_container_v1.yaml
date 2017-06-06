@@ -18,9 +18,9 @@ topology_template:
            node_filter:
              properties:
                - supported_sw:
-                   - node: { equal: 6 }
-                   - ruby: { greater_or_equal: 2 }
-               - os_distribution: { equal: alpine }
+                   - node: 6
+                   - ruby: 2
+               - os_distribution: alpine
       interfaces:
        Standard:
          start:

@@ -16,7 +16,7 @@ def _build_query(properties, policy=None, constraints={}):
         _log.debug(f)
         if f is None:
             return ''
-        elif isinstance(f, string_types):
+        elif not isinstance(f, dict):
             return f
         else:
             # TODO: implement functions
@@ -32,8 +32,8 @@ def _build_query(properties, policy=None, constraints={}):
             elif 'less_or_equal' == op:
                 return value
             else:
-                raise Exception('in parsing {}: function not '
-                                'recognise'.format(f))
+                raise Exception('in parsing {}: function not recognise'
+                                ''.format(f))
 
     def parse_unit(s):
         # bytes -> bytes
