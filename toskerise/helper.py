@@ -2,6 +2,8 @@ import os
 import zipfile
 import logging
 from os import path
+from toscaparser.prereq.csar import CSAR
+from toscaparser.common.exception import ValidationError
 
 
 class CONST:
@@ -81,5 +83,7 @@ def get_host_requirements(node):
         for r in node['requirements']:
             (k, v), = r.items()
             if CONST.REQUIREMENT_HOST == k:
-                return v
+                if v is None:
+                    r[k] = {}
+                return r[k]
     return None

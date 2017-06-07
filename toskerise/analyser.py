@@ -2,8 +2,8 @@ import ruamel.yaml
 import traceback
 from os import path
 from six import print_
+from six import string_types
 from toscaparser.tosca_template import ToscaTemplate
-from toscaparser.prereq.csar import CSAR
 from toscaparser.common.exception import ValidationError
 from . import helper
 from . import completer
@@ -13,13 +13,43 @@ from .helper import CONST
 _log = None
 
 
+def analyse_description(file_path, components=[], policy=None,
+                        constraints={}, interactive=False, force=False,
+                        df_host=CONST.DF_HOST):
+    global _log
+    _log = Logger.get(__name__)
+
+    try:
+        if file_path.endswith(('.zip', '.csar', '.CSAR')):
+            _log.debug('CSAR founded')
+            csar_tmp_path, yaml_path = helper.unpack_csar(file_path)
+            _update_tosca(yaml_path, yaml_path,
+                          components, policy,
+                          constraints, interactive,
+                          force, df_host)
+            new_path = _gen_new_path(file_path, 'completed')
+            helper.pack_csar(csar_tmp_path, new_path)
+        else:
+            _log.debug('YAML founded')
+            new_path = _gen_new_path(file_path, 'completed')
+            _update_tosca(file_path, new_path,
+                          components, policy,
+                          constraints, interactive,
+                          force, df_host)
+    except ValidationError as e:
+        print_('validation error:{}'.format(e))
+    except Exception as e:
+        _log.error('error type {}'.format(type(e)))
+        print_(', '.join(e.args))
+
+
 def _must_update(node, force):
     def is_software(node):
         return True if node.type == CONST.SOFTWARE_TYPE else False
 
     def has_requirement_key(node, key):
         requirement = helper.get_host_requirements(node)
-        if requirement is not None:
+        if requirement is not None and isinstance(requirement, dict):
             if key in requirement and\
                requirement[key] is not None:
                 return True
@@ -29,7 +59,8 @@ def _must_update(node, force):
         return has_requirement_key(node, 'node_filter')
 
     def has_node(node):
-        return has_requirement_key(node, 'node')
+        return has_requirement_key(node, 'node') or\
+            isinstance(helper.get_host_requirements(node), string_types)
 
     if is_software(node) and \
        (not has_node(node) or (force and has_nodefilter(node))):
@@ -71,6 +102,8 @@ def _update_tosca(file_path, new_path,
     _log.debug('update TOSCA YAML file {} to {}'.format(file_path, new_path))
 
     tosca = ToscaTemplate(file_path)
+    _log.debug('tosca: {}'.format(tosca))
+
     path_name = path.dirname(file_path)
     name = tosca.input_path.split('/')[-1][:-5]
 
@@ -78,7 +111,6 @@ def _update_tosca(file_path, new_path,
 
     tosca_yaml = ruamel.yaml.round_trip_load(open(file_path),
                                              preserve_quotes=True)
-
     errors = []
     to_complete = False
     if hasattr(tosca, 'nodetemplates'):
@@ -95,7 +127,7 @@ def _update_tosca(file_path, new_path,
                                                interactive, df_host)
                         except Exception as e:
                             _log.error('error: {}'.format(
-                                        traceback.format_exc()))
+                                traceback.format_exc()))
                             errors.append(' '.join(e.args))
 
     if len(errors) == 0 and to_complete:
@@ -104,30 +136,3 @@ def _update_tosca(file_path, new_path,
         raise Exception('ERRORS:\n{}'.format('\n'.join(errors)))
     else:
         raise Exception('no abstract node founded')
-
-
-def analyse_description(file_path, components=[], policy=None,
-                        constraints={}, interactive=False, force=False,
-                        df_host=CONST.DF_HOST):
-    global _log
-    _log = Logger.get(__name__)
-
-    try:
-        if file_path.endswith(('.zip', '.csar', '.CSAR')):
-            _log.debug('CSAR founded')
-            csar_tmp_path, yaml_path = helper.unpack_csar(file_path)
-            _update_tosca(yaml_path, yaml_path,
-                          components, policy,
-                          constraints, interactive,
-                          force, df_host)
-            new_path = _gen_new_path(file_path, 'completed')
-            helper.pack_csar(csar_tmp_path, new_path)
-        else:
-            _log.debug('YAML founded')
-            new_path = _gen_new_path(file_path, 'completed')
-            _update_tosca(file_path, new_path,
-                          components, policy,
-                          constraints, interactive,
-                          force, df_host)
-    except Exception as e:
-        print_(', '.join(e.args))

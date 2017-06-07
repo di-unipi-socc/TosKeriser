@@ -13,11 +13,9 @@ topology_template:
     server:
       type: tosker.nodes.Software
       requirements:
-        - host: nodejs
+        - host:
+           node_filter:
       interfaces:
-        Standard:
-          start:
-            implementation: get_version.sh
-
-    nodejs:
-      type: tosker.nodes.Container
+       Standard:
+         start:
+           implementation: get_version.sh

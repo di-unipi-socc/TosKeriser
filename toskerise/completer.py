@@ -8,6 +8,41 @@ from .helper import CONST
 _log = None
 
 
+def complete(node, nodes_yaml, tosca,
+             policy=None, constraints=None, interactive=False,
+             df_host=CONST.DF_HOST):
+    global _log
+    _log = Logger.get(__name__)
+    requirement = helper.get_host_requirements(node)
+
+    try:
+        properties = requirement['node_filter']['properties'] or []
+    except (TypeError,  KeyError):
+        properties = []
+    _log.debug('r:{} p:{}'.format(requirement, properties))
+
+    query = _build_query(properties, policy, constraints)
+    _log.debug('query {}'.format(query))
+
+    responce = _request(query, df_host)
+    images = responce['images']
+    _log.debug('returned images..')
+
+    if len(images) < 1:
+        raise Exception('no image found for container "{}"'.format(node.name))
+
+    print_('founded {[count]} images for "{.name}"'
+           ' component'.format(responce, node))
+
+    image = _choose_image(images, interactive)
+
+    _update_yaml(node, nodes_yaml, image)
+
+    print_('complete node "{}" with image "{}" ({:.2f} MB, {} pulls, {} stars)'
+           ''.format(node.name, image['name'],
+                     image['size'] / 1000000, image['pulls'], image['stars']))
+
+
 def _build_query(properties, policy=None, constraints={}):
     policy = CONST.POLICY_TOP if policy is None else policy
     errors = []
@@ -140,7 +175,7 @@ def _request(query, df_host):
 
 def _choose_image(images, interactive=False):
     def format_size(size):
-        return '{}MB'.format(size/1000/1000)
+        return '{}MB'.format(size / 1000 / 1000)
 
     if interactive:
         # print_('\n')
@@ -149,7 +184,7 @@ def _choose_image(images, interactive=False):
         for index, image in enumerate(images[:10]):
             print_('{2:<3}{0[name]:<30}{1:>15}'
                    '{0[pulls]:>15}{0[stars]:>15}'.format(
-                    image, format_size(image['size']), index+1))
+                       image, format_size(image['size']), index + 1))
         # print_('\n')
         i = None
         while not isinstance(i, int):
@@ -177,6 +212,13 @@ def _update_yaml(node, nodes_yaml, image):
     req_node_yaml = helper.get_host_requirements(nodes_yaml[node.name])
     req_node_yaml['node'] = container_name
 
+    # try:
+    #     prop = req_node_yaml['node_filter']['properties']
+    # except:
+    #     prop = []
+    # prop = {k: v for p in prop for k, v in p.items() if CONST.PROPERTY_SW != k and CONST.PROPERTY_OS != k}
+    # _log.debug('extract properties {}'.format(prop))
+
     nodes_yaml[container_name] = {
         'type': 'tosker.nodes.Container',
         'properties': {
@@ -191,33 +233,3 @@ def _update_yaml(node, nodes_yaml, image):
             }
         }
     }
-
-
-def complete(node, nodes_yaml, tosca,
-             policy=None, constraints=None, interactive=False,
-             df_host=CONST.DF_HOST):
-    global _log
-    _log = Logger.get(__name__)
-    requirement = helper.get_host_requirements(node)
-    properties = requirement['node_filter']['properties']
-
-    query = _build_query(properties, policy, constraints)
-    _log.debug('query {}'.format(query))
-
-    responce = _request(query, df_host)
-    images = responce['images']
-    _log.debug('returned images..')
-
-    if len(images) < 1:
-        raise Exception('no image found for container "{}"'.format(node.name))
-
-    print_('founded {[count]} images for "{.name}"'
-           ' component'.format(responce, node))
-
-    image = _choose_image(images, interactive)
-
-    _update_yaml(node, nodes_yaml, image)
-
-    print_('complete node "{}" with image "{}" ({:.2f} MB, {} pulls, {} stars)'
-           ''.format(node.name, image['name'],
-                     image['size'] / 1000000, image['pulls'], image['stars']))

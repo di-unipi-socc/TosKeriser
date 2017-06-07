@@ -13,15 +13,23 @@ topology_template:
     server:
       type: tosker.nodes.Software
       requirements:
-        - host: nodejs
+      - host:
+          node: server_container
+          node_filter:
+            properties:
+            - supported_sw:
+              - node: 6
+              - ruby: 2
+            - os_distribution: alpine
       interfaces:
         Standard:
           start:
             implementation: get_version.sh
 
-    nodejs:
+    server_container:
       type: tosker.nodes.Container
       artifacts:
-        image:
+        my_image:
           type: tosker.artifacts.Image
-          file:
+          repository: docker_hub
+          file: node:6

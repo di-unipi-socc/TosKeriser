@@ -1,35 +1,6 @@
 tosca_definitions_version: tosca_simple_yaml_1_0
+
 description: Definition of the custom types of TosKer.
-
-
-
-# data_types:
-#   tosker.data.metadata:
-#     version: 1
-#     description: metadata for the container node
-#     properties:
-#       software:
-#         type: map
-#         required: false
-#         entry_schema:
-#           type: version
-#       size:
-#         type: string
-#         required: false
-#         # constraints:
-#           # - greater_or_equal: 0MB
-#       pulls:
-#         type: string
-#         required: false
-#         # constraints:
-#         #   - greater_or_equal: 0
-#       stars:
-#         type: string
-#         required: false
-#         # constraints:
-#         #   - greater_or_equal: 0
-
-
 
 node_types:
   tosker.nodes.Root:
@@ -53,10 +24,14 @@ node_types:
         type: map
       command:
         type: string
-      installed_sw:
+      supported_sw:
         type: map
+        required: false
+        # entry_schema:
+        #   type: string
       os_distribution:
         type: string
+        required: false
       # END
 
     properties:
@@ -66,7 +41,10 @@ node_types:
       env_variable:
         type: map
         required: false
-      installed_sw:
+      command:
+        type: string
+        required: false
+      supported_sw:
         type: map
         required: false
         # entry_schema:
@@ -74,12 +52,6 @@ node_types:
       os_distribution:
         type: string
         required: false
-      # command:
-      #   type: string
-      #   required: false
-      # metadata:
-      #   type: tosker.data.metadata
-      #   required: false
 
     requirements:
       - storage:
@@ -130,6 +102,17 @@ node_types:
   tosker.nodes.Software:
     derived_from: tosker.nodes.Root
 
+    attributes:
+        # BEGIN work around for the get_attribute bug in toscaparser
+        ports:
+          type: map
+        # END
+
+    properties:
+      ports:
+        type: map
+        required: false
+
     requirements:
       - connection:
           capability: tosca.capabilities.Endpoint
@@ -160,7 +143,6 @@ node_types:
         type: tosca.capabilities.Container
         valid_source_types: [tosker.nodes.Software]
         occurrences: [0, UNBOUNDED]
-
 
 
 artifact_types:

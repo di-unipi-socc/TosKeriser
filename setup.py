@@ -11,10 +11,10 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
-exec(open('toskermatcher/__init__.py').read())
+exec(open('toskerise/__init__.py').read())
 
 setup(
-    name='TosKer-Matcher',
+    name='TosKerise',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
@@ -27,7 +27,7 @@ setup(
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/di-unipi-socc/TosKer-Matcher',
+    url='https://github.com/di-unipi-socc/TosKerise',
 
     # Author details
     author='lucarin91',
@@ -71,7 +71,7 @@ setup(
         'test': ['coverage'],
     },
 
-    test_suite="toskermatcher.tests",
+    test_suite="toskerise.tests",
 
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
@@ -86,9 +86,9 @@ setup(
     # http://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files # noqa
     # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
     data_files=[
-        ('/usr/share/tosker-matcher', ['toskermatcher/tosker-types.yaml']),
-        ('/usr/share/tosker-matcher/examples',
-            ['toskermatcher/tests/examples/metadata_container_v3.yaml'])
+        ('/usr/share/toskerise', ['toskerise/tosker-types.yaml']),
+        ('/usr/share/toskerise/examples',
+            ['toskerise/tests/examples/thoughts-app/thoughts.csar'])
 
     ],
 
@@ -97,7 +97,7 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'tosker-matcher=toskermatcher.matcher:run',
+            'toskerise=toskerise.ui:run',
         ],
     },
 )

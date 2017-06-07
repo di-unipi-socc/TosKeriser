@@ -13,7 +13,7 @@ topology_template:
     server:
       type: tosker.nodes.Software
       requirements:
-        - host: nodejs
+      - host: nodejs
       interfaces:
         Standard:
           start:
@@ -21,21 +21,8 @@ topology_template:
 
     nodejs:
       type: tosker.nodes.Container
-      properties:
-        installed_sw:
-          node: 6
-          # ruby: 2
-        os_distribution: debian
       artifacts:
-        node_ruby:
+        my_image:
           type: tosker.artifacts.Image
+          repository: docker_hub
           file: node:6
-          repositories: docker_hub
-
-    nodejs2:
-      type: tosker.nodes.Container
-      artifacts:
-        node_ruby:
-          type: tosker.artifacts.Image
-          file: node:6
-          repositories: docker_hub

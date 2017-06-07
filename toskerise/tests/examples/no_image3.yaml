@@ -13,14 +13,8 @@ topology_template:
     server:
       type: tosker.nodes.Software
       requirements:
-        - host: nodejs
+        - host:
       interfaces:
-        Standard:
-          start:
-            implementation: get_version.sh
-
-    nodejs:
-      type: tosker.nodes.Container
-      artifacts:
-        image:
-          type: tosker.artifacts.Image
+       Standard:
+         start:
+           implementation: get_version.sh

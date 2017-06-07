@@ -13,16 +13,18 @@ from . import analyser
 from .helper import Logger
 from .helper import CONST
 
-_USAGE = '''
-tosker-matcher FILE [COMONENT..] [OPTIONS]
-tosker-matcher --help|-h
-tosker-matcher --version|-v
+
+_USAGE = '''TosKerise, a tool to comples TosKer application description with suitable Docker Images.
+
+toskerise FILE [COMONENT..] [OPTIONS]
+toskerise --help|-h
+toskerise --version|-v
 
 FILE
-  TOSCA YAML file or a CSAR to completed
+  TOSCA YAML file or a CSAR to be completed
 
 COMONENT
-  a ist of component to complete (by default all component are considered)
+  a list of component to be completed (by default all component are considered)
 
 OPTIONS
   --debug                              active debug mode
@@ -31,23 +33,63 @@ OPTIONS
   -f|--force                           force the update of all containers
   --constraints=value                  constraint to give to DockerFinder
                                        (e.g. --constraints 'size<=100MB pulls>30 stars>10')
-
   --policy=top_rated|size|most_used    ordering of the images
 '''
 
-_FLAG = {
-    '--debug': 'debug',
-    '-q': 'quiet',
-    '--quiet': 'quiet',
-    '--help': 'help',
-    '-h': 'help',
-    '-v': 'version',
-    '--version': 'version',
-    '-i': 'interactive',
-    '--interactive': 'interactive',
-    '-f': 'force',
-    '--force': 'force'
-}
+_log = None
+
+
+def run():
+    global _log
+    if len(argv) > 1:
+        try:
+            file_path, comps, flags, params = _parse_input(argv[1:])
+        except Exception as e:
+            print_(''.join(e.args))
+            exit(-1)
+    else:
+        print_('few arguments, --help for usage')
+        exit(-1)
+
+    if flags.get('help', False):
+        print_(_USAGE)
+        exit(0)
+    if flags.get('version', False):
+        print_('TosKerise version {}'.format(__version__))
+        exit(0)
+
+    Logger.set_logger(logging.CRITICAL)
+    if flags.get('debug', False) and not flags.get('quiet', False):
+        Logger.set_logger(logging.DEBUG)
+    elif flags.get('quiet', False):
+        old_target, sys.stdout = sys.stdout, StringIO()
+
+    _log = Logger.get(__name__)
+    _log.debug('input parameters: {}, {}, {}, {}'.format(
+        file_path, comps, flags, params))
+
+    constraint = params.get('constraints', {})
+    _log.debug('constraints {}'.format(constraint))
+
+    policy = params.get('policy', None)
+    _log.debug('policy {}'.format(policy))
+
+    df_host = os.environ.get('DOCKERFINDER_HOST', CONST.DF_HOST)
+    _log.debug('DF_HOST: {}'.format(df_host))
+    try:
+        analyser.analyse_description(file_path, components=comps,
+                                     policy=policy,
+                                     constraints=constraint,
+                                     interactive=flags.get(
+                                         'interactive', False),
+                                     force=flags.get('force', False),
+                                     df_host=df_host)
+    except Exception as e:
+        _log.debug('error: {}'.format(traceback.format_exc()))
+        print_(' '.join(e.args))
+    finally:
+        if flags.get('quiet', False):
+            sys.stdout = old_target
 
 
 def _parse_contraint(con):
@@ -80,12 +122,24 @@ def _parse_policy(policy):
         return policy
 
 
+_FLAG = {
+    '--debug': 'debug',
+    '-q': 'quiet',
+    '--quiet': 'quiet',
+    '--help': 'help',
+    '-h': 'help',
+    '-v': 'version',
+    '--version': 'version',
+    '-i': 'interactive',
+    '--interactive': 'interactive',
+    '-f': 'force',
+    '--force': 'force'
+}
+
 _PARAMS = {
     '--policy': _parse_policy,
     '--constraints': _parse_contraint
 }
-
-_log = None
 
 
 def _parse_input(args):
@@ -119,15 +173,15 @@ def _parse_input(args):
                 flags[_FLAG[args[i]]] = True
             elif args[i] in _PARAMS:
                 if (i + 1 < len(args) and
-                   not p1.match(args[i + 1]) and
-                   not p2.match(args[i + 1])):
-                    value, new_i = get_value(i+1)
+                    not p1.match(args[i + 1]) and
+                        not p2.match(args[i + 1])):
+                    value, new_i = get_value(i + 1)
                     params[args[i][2:]] = _PARAMS[args[i]](value)
                     i = new_i
                     continue
                 else:
                     raise Exception('missing input value for {}'.format(
-                          args[i]))
+                        args[i]))
             else:
                 raise Exception('parameter {} not recognise'.format(args[i]))
         elif p2.match(args[i]):
@@ -151,59 +205,6 @@ def _parse_input(args):
                                 'a CSAR or a ZIP archive.')
         i += 1
     return file, comps, flags, params
-
-
-def run():
-    global _log
-    if len(argv) > 1:
-        try:
-            file_path, comps, flags, params = _parse_input(argv[1:])
-        except Exception as e:
-            print_(''.join(e.args))
-            exit(-1)
-    else:
-        print_('few arguments, --help for usage')
-        exit(-1)
-
-    if flags.get('help', False):
-        print_(_USAGE)
-        exit(0)
-    if flags.get('version', False):
-        print_(__version__)
-        exit(0)
-
-    Logger.set_logger(logging.CRITICAL)
-    if flags.get('debug', False) and not flags.get('quiet', False):
-        Logger.set_logger(logging.DEBUG)
-    elif flags.get('quiet', False):
-        old_target, sys.stdout = sys.stdout, StringIO()
-
-    _log = Logger.get(__name__)
-    _log.debug('input parameters: {}, {}, {}, {}'.format(
-        file_path, comps, flags, params))
-
-    constraint = params.get('constraints', {})
-    _log.debug('constraints {}'.format(constraint))
-
-    policy = params.get('policy', None)
-    _log.debug('policy {}'.format(policy))
-
-    df_host = os.environ.get('DOCKERFINDER_HOST', CONST.DF_HOST)
-    _log.debug('DF_HOST: {}'.format(df_host))
-    try:
-        analyser.analyse_description(file_path, components=comps,
-                                     policy=policy,
-                                     constraints=constraint,
-                                     interactive=flags.get(
-                                        'interactive', False),
-                                     force=flags.get('force', False),
-                                     df_host=df_host)
-    except Exception as e:
-        _log.debug('error: {}'.format(traceback.format_exc()))
-        print_(' '.join(e.args))
-    finally:
-        if flags.get('quiet', False):
-            sys.stdout = old_target
 
 
 if __name__ == '__main__':

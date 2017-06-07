@@ -31,8 +31,17 @@ topology_template:
   node_templates:
     api:
       type: tosker.nodes.Software
+      properties:
+        ports:
+          8080: { get_input: api_port }
       requirements:
-        - host: maven
+        - host:
+            node_filter:
+              properties:
+                - supported_sw:
+                  - mvn: 3
+                  - java: 1.8
+                  - git: 1
         - connection: mongodb
       interfaces:
         Standard:
@@ -57,8 +66,17 @@ topology_template:
 
     gui:
       type: tosker.nodes.Software
+      properties:
+        ports:
+          3000: { get_input: gui_port }
       requirements:
-        - host: node
+        - host:
+            node_filter:
+              properties:
+              - supported_sw:
+                - node: 6
+                - npm: 3
+                - git: 2
         - dependency: api
       interfaces:
         Standard:
@@ -80,35 +98,35 @@ topology_template:
           delete:
             implementation: scripts/gui/uninstall.sh
 
-    maven:
-      type: tosker.nodes.Container
-      properties:
-        ports:
-          8080: { get_input: api_port }
-        installed_sw:
-          mvn: 3
-          java: 1.8
-          git: 1
-      artifacts:
-        my_image:
-          file: maven:3.3-jdk-8
-          type: tosker.artifacts.Image
-          repository: docker_hub
-
-    node:
-      type: tosker.nodes.Container
-      properties:
-        ports:
-          3000: { get_input: gui_port }
-        installed_sw:
-          node: 6
-          npm: 3
-          git: 2
-      artifacts:
-        my_image:
-          file: node:6
-          type: tosker.artifacts.Image
-          repository: docker_hub
+    # maven:
+    #   type: tosker.nodes.Container
+    #   properties:
+    #     ports:
+    #       8080: { get_input: api_port }
+    #     support:
+    #       mvn: 3
+    #       java: 1.8
+    #       git: 1
+    #   artifacts:
+    #     my_image:
+    #       file: maven:3.3-jdk-8
+    #       type: tosker.artifacts.Image
+    #       repository: docker_hub
+    #
+    # node:
+    #   type: tosker.nodes.Container
+    #   properties:
+    #     ports:
+    #       3000: { get_input: gui_port }
+    #     support:
+    #       node: 6
+    #       npm: 3
+    #       git: 2
+    #   artifacts:
+    #     my_image:
+    #       file: node:6
+    #       type: tosker.artifacts.Image
+    #       repository: docker_hub
 
     mongodb:
       type: tosker.nodes.Container

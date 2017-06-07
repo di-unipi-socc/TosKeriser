@@ -18,7 +18,7 @@ topology_template:
            node_filter:
              properties:
                - supported_sw:
-                   - node: 6
+                   - node: 6.2
                    - ruby: 2
                - os_distribution: alpine
       interfaces:
