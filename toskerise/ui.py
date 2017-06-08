@@ -16,14 +16,14 @@ from .helper import CONST
 
 _USAGE = '''TosKerise, a tool to comples TosKer application description with suitable Docker Images.
 
-toskerise FILE [COMONENT..] [OPTIONS]
+toskerise FILE [COMPONENT..] [OPTIONS]
 toskerise --help|-h
 toskerise --version|-v
 
 FILE
   TOSCA YAML file or a CSAR to be completed
 
-COMONENT
+COMPONENT
   a list of component to be completed (by default all component are considered)
 
 OPTIONS
