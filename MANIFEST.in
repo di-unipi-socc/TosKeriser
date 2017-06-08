@@ -1,4 +1,4 @@
 # Include the license file
 include LICENSE.md
-include toskerise/*.yaml
-recursive-include toskerise/tests/examples *
+include toskeriser/*.yaml
+recursive-include toskeriser/tests/examples *

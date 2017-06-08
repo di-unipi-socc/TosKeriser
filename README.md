@@ -1,11 +1,11 @@
-# TosKerise
+# TosKeriser
 
 Tool to complete TosKer application description with suitable Docker Images.
 
 
 ## Usage
 ```
-TosKerise, a tool to comples TosKer application description with suitable Docker Images.
+TosKeriser, a tool to complete TosKer application description with suitable Docker Images.
 
 toskerise FILE [COMPONENT..] [OPTIONS]
 toskerise --help|-h

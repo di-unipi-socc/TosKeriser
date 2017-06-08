@@ -14,7 +14,7 @@ from .helper import Logger
 from .helper import CONST
 
 
-_USAGE = '''TosKerise, a tool to comples TosKer application description with suitable Docker Images.
+_USAGE = '''TosKeriser, a tool to complete TosKer application description with suitable Docker Images.
 
 toskerise FILE [COMPONENT..] [OPTIONS]
 toskerise --help|-h
@@ -55,7 +55,7 @@ def run():
         print_(_USAGE)
         exit(0)
     if flags.get('version', False):
-        print_('TosKerise version {}'.format(__version__))
+        print_('TosKeriser version {}'.format(__version__))
         exit(0)
 
     Logger.set_logger(logging.CRITICAL)

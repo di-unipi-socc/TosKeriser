@@ -1,5 +1,5 @@
 from unittest import TestCase
-from toskerise import analyser
+from toskeriser import analyser
 
 
 class Test_Analyser(TestCase):
