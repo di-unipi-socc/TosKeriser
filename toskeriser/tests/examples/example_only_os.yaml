@@ -14,10 +14,10 @@ topology_template:
     server:
       type: tosker.nodes.Software
       requirements:
-        - host:
-           node_filter:
-             properties:
-               - os_distribution: debian
+      - host:
+         node_filter:
+           properties:
+           - os_distribution: debian
       interfaces:
        Standard:
          start:

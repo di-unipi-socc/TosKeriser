@@ -13,7 +13,7 @@ topology_template:
     server:
       type: tosker.nodes.Software
       requirements:
-        - host:
+      - host:
       interfaces:
        Standard:
          start:

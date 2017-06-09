@@ -14,12 +14,12 @@ topology_template:
     server:
       type: tosker.nodes.Software
       requirements:
-        - host:
-           node_filter:
-             properties:
-               - supported_sw:
-                   - node: 6
-                   - ruby: 2
+      - host:
+         node_filter:
+           properties:
+           - supported_sw:
+             - node: 6.x.x
+             - ruby: 2.x.x
       interfaces:
        Standard:
          start:

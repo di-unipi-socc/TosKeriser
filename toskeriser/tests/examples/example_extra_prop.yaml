@@ -24,8 +24,8 @@ topology_template:
              - TEST: 'hello'
              - TEST2: { get_input: name }
            - supported_sw:
-             - node: 6.2
-             - ruby: 2
+             - node: 6.2.x
+             - ruby: 2.x.x
            - os_distribution: alpine
       interfaces:
        Standard:

@@ -13,9 +13,9 @@ topology_template:
     server:
       type: tosker.nodes.Software
       requirements:
-        - host:
-           node_filter:
-             properties:
+      - host:
+         node_filter:
+           properties:
       interfaces:
        Standard:
          start:

@@ -1,5 +1,6 @@
 import requests
 import copy
+import re
 from six import string_types
 from six import print_
 from . import helper
@@ -50,26 +51,29 @@ def _build_query(properties, policy=None, constraints={}):
 
     def parse_functions(f):
         _log.debug(f)
-        if f is None:
-            return ''
-        elif not isinstance(f, dict):
+        if not isinstance(f, dict):
             return f
         else:
-            # TODO: implement functions
             (op, value), = f.items()
             if 'equal' == op:
                 return value
-            elif 'greater_or_equal' == op:
-                return value
-            elif 'greater_than' == op:
-                return value
-            elif 'less_than' == op:
-                return value
-            elif 'less_or_equal' == op:
-                return value
+            elif op in ('greater_or_equal', 'greater_than',
+                        'less_than', 'less_or_equal'):
+                raise Exception('in parsing {}: function not supported'
+                                ''.format(f))
             else:
                 raise Exception('in parsing {}: function not recognise'
                                 ''.format(f))
+
+    def parse_version(s):
+        s = parse_functions(str(s))
+        match = re.match('^([0-9]+|x|X)\\.([0-9]+|x|X)\\.([0-9]+|x|X)$', s)
+        if match is not None:
+            version = re.match('[0-9]+(\\.[0-9]+)*', s)
+            return version.group(0) if version is not None else ''
+        else:
+            raise Exception('in parsing {}: version format is not correct'
+                            ''.format(s))
 
     def parse_unit(s):
         # bytes -> bytes
@@ -125,7 +129,7 @@ def _build_query(properties, policy=None, constraints={}):
             for s in p[CONST.PROPERTY_SW]:
                 (k, v), = s.items()
                 try:
-                    query[k.lower()] = parse_functions(v)
+                    query[k.lower()] = parse_version(v)
                 except Exception as e:
                     errors.append(e.args[0])
         if CONST.PROPERTY_OS in p:
@@ -203,12 +207,6 @@ def _choose_image(images, interactive=False):
 
 
 def _update_yaml(node, nodes_yaml, image):
-    def format_software(image):
-        res = {}
-        for s in image['softwares']:
-            res[s['software']] = s['ver']
-        return res
-
     container_name = '{}_container'.format(node.name)
     req_node_yaml = helper.get_host_requirements(nodes_yaml[node.name])
     req_node_yaml['node'] = container_name
@@ -224,6 +222,9 @@ def _update_yaml(node, nodes_yaml, image):
     new_prop = {k: copy.deepcopy(list_to_map(v) if isinstance(v, list) else v)
                 for p in prop for k, v in p.items()
                 if CONST.PROPERTY_SW != k and CONST.PROPERTY_OS != k}
+
+    def format_software(image):
+        return {s['software']: s['ver'] for s in image['softwares']}
 
     nodes_yaml[container_name] = {
         'type': 'tosker.nodes.Container',
