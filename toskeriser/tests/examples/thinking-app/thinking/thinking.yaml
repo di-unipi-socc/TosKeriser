@@ -31,17 +31,16 @@ topology_template:
   node_templates:
     api:
       type: tosker.nodes.Software
-      properties:
-        ports:
-          8080: { get_input: api_port }
       requirements:
         - host:
             node_filter:
               properties:
-                - supported_sw:
-                  - mvn: 3
-                  - java: 1.8
-                  - git: 1
+              - ports:
+                - 8080: { get_input: api_port }
+              - supported_sw:
+                - mvn: 3
+                - java: 1.8
+                - git: 1
         - connection: mongodb
       interfaces:
         Standard:
@@ -66,13 +65,12 @@ topology_template:
 
     gui:
       type: tosker.nodes.Software
-      properties:
-        ports:
-          3000: { get_input: gui_port }
       requirements:
         - host:
             node_filter:
               properties:
+              - ports:
+                - 3000: { get_input: gui_port }
               - supported_sw:
                 - node: 6
                 - npm: 3

@@ -1,4 +1,5 @@
 import requests
+import copy
 from six import string_types
 from six import print_
 from . import helper
@@ -212,18 +213,24 @@ def _update_yaml(node, nodes_yaml, image):
     req_node_yaml = helper.get_host_requirements(nodes_yaml[node.name])
     req_node_yaml['node'] = container_name
 
-    # try:
-    #     prop = req_node_yaml['node_filter']['properties']
-    # except:
-    #     prop = []
-    # prop = {k: v for p in prop for k, v in p.items() if CONST.PROPERTY_SW != k and CONST.PROPERTY_OS != k}
-    # _log.debug('extract properties {}'.format(prop))
+    try:
+        prop = req_node_yaml['node_filter']['properties']
+    except KeyError:
+        prop = []
+
+    def list_to_map(l):
+        return {k: v for i in l for k, v in i.items()}
+
+    new_prop = {k: copy.deepcopy(list_to_map(v) if isinstance(v, list) else v)
+                for p in prop for k, v in p.items()
+                if CONST.PROPERTY_SW != k and CONST.PROPERTY_OS != k}
 
     nodes_yaml[container_name] = {
         'type': 'tosker.nodes.Container',
         'properties': {
             CONST.PROPERTY_SW: format_software(image),
-            CONST.PROPERTY_OS: image['distro']
+            CONST.PROPERTY_OS: image['distro'],
+            **new_prop
         },
         'artifacts': {
             'my_image': {
