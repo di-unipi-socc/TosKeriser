@@ -20,28 +20,37 @@ def analyse_description(file_path, components=[], policy=None,
     _log = Logger.get(__name__)
 
     try:
-        if file_path.endswith(('.zip', '.csar', '.CSAR')):
-            _log.debug('CSAR founded')
-            csar_tmp_path, yaml_path = helper.unpack_csar(file_path)
-            _update_tosca(yaml_path, yaml_path,
-                          components, policy,
-                          constraints, interactive,
-                          force, df_host)
-            new_path = _gen_new_path(file_path, 'completed')
-            helper.pack_csar(csar_tmp_path, new_path)
-        else:
-            _log.debug('YAML founded')
-            new_path = _gen_new_path(file_path, 'completed')
-            _update_tosca(file_path, new_path,
-                          components, policy,
-                          constraints, interactive,
-                          force, df_host)
+        _analyse_description(file_path, components, policy, constraints,
+                             interactive, force, df_host)
     except ValidationError as e:
         print_('validation error:{}'.format(e))
     except Exception as e:
         _log.error('error type {}'.format(type(e)))
         print_(', '.join(e.args))
 
+
+def _analyse_description(file_path, components=[], policy=None,
+                         constraints={}, interactive=False, force=False,
+                         df_host=CONST.DF_HOST):
+    global _log
+    _log = Logger.get(__name__)
+
+    if file_path.endswith(('.zip', '.csar', '.CSAR')):
+        _log.debug('CSAR founded')
+        csar_tmp_path, yaml_path = helper.unpack_csar(file_path)
+        _update_tosca(yaml_path, yaml_path,
+                      components, policy,
+                      constraints, interactive,
+                      force, df_host)
+        new_path = _gen_new_path(file_path, 'completed')
+        helper.pack_csar(csar_tmp_path, new_path)
+    else:
+        _log.debug('YAML founded')
+        new_path = _gen_new_path(file_path, 'completed')
+        _update_tosca(file_path, new_path,
+                      components, policy,
+                      constraints, interactive,
+                      force, df_host)
 
 def _must_update(node, force):
     def is_software(node):

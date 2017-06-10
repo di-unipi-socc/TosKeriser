@@ -31,21 +31,22 @@ class Logger:
 
     @staticmethod
     def set_logger(level=logging.DEBUG):
-        global _ch
-        _ch = logging.StreamHandler()
-        _ch.setLevel(level)
+        # global Logger._ch
+        Logger._ch = logging.StreamHandler()
+        Logger._ch.setLevel(level)
         formatter = logging.Formatter((
             '%(levelname) -3s %(asctime)s %(name)'
             '-3s %(funcName)'
             '-1s %(lineno) -0s: %(message)s'
         ))
-        _ch.setFormatter(formatter)
+        Logger._ch.setFormatter(formatter)
 
     @staticmethod
     def get(name, level=logging.DEBUG):
         log = logging.getLogger(name)
         log.setLevel(level)
-        log.addHandler(_ch)
+        if Logger._ch is not None:
+            log.addHandler(Logger._ch)
         return log
 
 
