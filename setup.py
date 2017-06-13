@@ -68,7 +68,7 @@ setup(
     # $ pip install -e .[dev,test]
     extras_require={
         'dev': ['check-manifest', 'isort'],
-        'test': ['coverage'],
+        'test': ['coverage', 'requests_mock'],
     },
 
     test_suite="toskeriser.tests",
@@ -87,9 +87,10 @@ setup(
     # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
     data_files=[
         ('/usr/share/toskeriser', ['toskeriser/tosker-types.yaml']),
-        ('/usr/share/toskeriser/examples',
-            ['toskeriser/tests/examples/thoughts-app/thoughts.csar'])
-
+        ('/usr/share/toskeriser/examples', [
+            'toskeriser/tests/examples/thinking-app/thinking.csar',
+            'toskeriser/tests/examples/example_all.yaml'
+        ])
     ],
 
     # To provide executable scripts, use entry points in preference to the
