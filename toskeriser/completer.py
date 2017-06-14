@@ -67,7 +67,7 @@ def _build_query(properties, policy=None, constraints={}):
 
     def parse_version(s):
         s = parse_functions(str(s))
-        match = re.match('^([0-9]+|x|X)\\.([0-9]+|x|X)\\.([0-9]+|x|X)$', s)
+        match = re.match('^([0-9]+.)*x$', s)
         if match is not None:
             version = re.match('[0-9]+(\\.[0-9]+)*', s)
             return version.group(0) if version is not None else ''

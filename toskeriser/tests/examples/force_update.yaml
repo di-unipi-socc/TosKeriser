@@ -18,8 +18,8 @@ topology_template:
           node_filter:
             properties:
             - supported_sw:
-              - node: 6.x.x
-              - ruby: 2.x.x
+              - node: 6.x
+              - ruby: 2.x
             - os_distribution: alpine
       interfaces:
         Standard:

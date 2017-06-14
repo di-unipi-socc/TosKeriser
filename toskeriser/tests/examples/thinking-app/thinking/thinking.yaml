@@ -6,8 +6,8 @@ repositories:
   docker_hub: https://registry.hub.docker.com/
 
 imports:
-  # - tosker: https://di-unipi-socc.github.io/tosker-types/tosker.yaml
-  - tosker: tosker-types.yaml
+  - tosker: https://di-unipi-socc.github.io/tosker-types/tosker.yaml
+  # - tosker: tosker-types.yaml
 
 topology_template:
   inputs:
@@ -38,9 +38,9 @@ topology_template:
               - ports:
                 - 8080: { get_input: api_port }
               - supported_sw:
-                - mvn: 3.x.x
+                - mvn: 3.x
                 - java: 1.8.x
-                - git: x.x.x
+                - git: x
         - connection: mongodb
       interfaces:
         Standard:
@@ -72,9 +72,9 @@ topology_template:
               - ports:
                 - 3000: { get_input: gui_port }
               - supported_sw:
-                - node: 6.x.x
-                - npm: 3.x.x
-                - git: x.x.x
+                - node: 6.x
+                - npm: 3.x
+                - git: x
         - dependency: api
       interfaces:
         Standard:
