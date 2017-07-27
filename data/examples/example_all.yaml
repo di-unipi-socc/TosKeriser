@@ -19,8 +19,8 @@ topology_template:
            properties:
            - supported_sw:
              - node: 6.2.x
-             - ruby: 2.x.x
-             - wget: x.x.x
+             - ruby: 2.x
+             - wget: x
            - os_distribution: alpine
       interfaces:
        Standard:
