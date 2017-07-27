@@ -9,7 +9,7 @@ container to run the components.
 
 For instance the following application has a components called
 ``server`` require a set of software (node>=6.2, ruby>2 and any version
-of wget) and Debian as distribution.
+of wget) and Alpine as Linux distribution.
 
 ::
 
@@ -24,16 +24,17 @@ of wget) and Debian as distribution.
              - node: 6.2.x
              - ruby: 2.x.x
              - wget: x.x.x
-           - os_distribution: debian
-    ...
+           - os_distribution: alpine
+      ...
 
-After run tosKeriser on this specification, it creates the component
+After run TosKeriser on this specification, it creates the component
 ``server_container`` and connects the ``server`` component to it. It is
 possible to see that the ``server_container`` has all the software
-required by ``server`` and has also Debian 8 as Linux distribution.
+required by ``server`` and has also Alpine v3.4 as Linux distribution.
 
 ::
 
+    ...
     server:
       type: tosker.nodes.Software
       requirements:
@@ -44,8 +45,9 @@ required by ``server`` and has also Debian 8 as Linux distribution.
              - node: 6.2.x
              - ruby: 2.x.x
              - wget: x.x.x
-           - os_distribution: debian
+           - os_distribution: alpine
            node: server_container
+      ...
 
     server_container:
          type: tosker.nodes.Container
@@ -69,7 +71,7 @@ required by ``server`` and has also Debian 8 as Linux distribution.
              type: tosker.artifacts.Image
              repository: docker_hub
 
-More examples can be found in the ``examples`` folder.
+More examples can be found in the ``data/examples`` folder.
 
 Installation
 ------------
@@ -78,7 +80,7 @@ In is possible to install TosKeriser by using pip:
 
 ::
 
-    # pip install tosker
+    # pip install toskeriser
 
 The minimum Python version supported is 2.7.
 
@@ -86,8 +88,6 @@ Usage
 -----
 
 ::
-
-    TosKeriser, a tool to complete TosKer application description with suitable Docker Images.
 
     toskerise FILE [COMPONENT..] [OPTIONS]
     toskerise --help|-h
