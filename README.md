@@ -2,7 +2,7 @@
 
 TosKeriser is a tool to complete [TosKer](https://github.com/di-unipi-socc/TosKer) applications with suitable Docker Images. The user can specify the software required by each component and the tool complete the specification with a suitable container to run the components.
 
-For instance the following application has a components called `server` require a set of software (node>=6.2, ruby>2 and any version of wget) and Debian as distribution.
+For instance the following application has a components called `server` require a set of software (node>=6.2, ruby>2 and any version of wget) and Alpine as Linux distribution.
 ```
 ...
 server:
@@ -15,11 +15,11 @@ server:
          - node: 6.2.x
          - ruby: 2.x.x
          - wget: x.x.x
-       - os_distribution: debian
+       - os_distribution: alpine
 ...
 ```
 
-After run tosKeriser on this specification, it creates the component `server_container` and connects the `server` component to it. It is possible to see that the `server_container` has all the software required by `server` and has also Debian 8 as Linux distribution.
+After run TosKeriser on this specification, it creates the component `server_container` and connects the `server` component to it. It is possible to see that the `server_container` has all the software required by `server` and has also Alpine v3.4 as Linux distribution.
 
 ```
 server:
@@ -32,7 +32,7 @@ server:
          - node: 6.2.x
          - ruby: 2.x.x
          - wget: x.x.x
-       - os_distribution: debian
+       - os_distribution: alpine
        node: server_container
 
 server_container:
