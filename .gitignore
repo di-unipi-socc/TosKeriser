@@ -20,7 +20,9 @@ lib
 lib64
 
 # Test and Coverage
+.tox/
 .coverage
 htmlcov/
+
 
 *.completed.*

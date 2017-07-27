@@ -7,7 +7,7 @@ repositories:
   docker_hub: https://registry.hub.docker.com/
 
 imports:
-  - tosker: ../../tosker-types.yaml
+  - tosker: ../tosker-types.yaml
 
 topology_template:
   node_templates:
@@ -17,9 +17,16 @@ topology_template:
       - host:
          node_filter:
            properties:
+           - ports:
+             - 8080: { get_input: asd }
+             - 4000: 23
+           - env_variable:
+             - TEST: 'hello'
+             - TEST2: { get_input: name }
            - supported_sw:
-             - node: 6.x.x
+             - node: 6.2.x
              - ruby: 2.x.x
+           - os_distribution: alpine
       interfaces:
        Standard:
          start:

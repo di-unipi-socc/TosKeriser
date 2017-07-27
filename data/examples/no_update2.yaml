@@ -6,17 +6,23 @@ repositories:
   docker_hub: https://registry.hub.docker.com/
 
 imports:
-  - tosker: ../../tosker-types.yaml
+  - tosker: ../tosker-types.yaml
 
 topology_template:
   node_templates:
     server:
       type: tosker.nodes.Software
       requirements:
-      - host:
-         node_filter:
-           properties:
+      - host: nodejs
       interfaces:
-       Standard:
-         start:
-           implementation: get_version.sh
+        Standard:
+          start:
+            implementation: get_version.sh
+
+    nodejs:
+      type: tosker.nodes.Container
+      artifacts:
+        my_image:
+          type: tosker.artifacts.Image
+          repository: docker_hub
+          file: node:6

@@ -7,21 +7,21 @@ repositories:
   docker_hub: https://registry.hub.docker.com/
 
 imports:
-  - tosker: ../../tosker-types.yaml
+  - tosker: ../tosker-types.yaml
 
 topology_template:
   node_templates:
     server:
       type: tosker.nodes.Software
       requirements:
-        - host:
-            relationship:
-              type: tosker.relationships.HostedOn
-              properties:
-                - needed_sw:
-                    nodejs: 6
-                    ruby: 2
-                - nedded_os: debian
+      - host:
+         node_filter:
+           properties:
+           - supported_sw:
+             - node: 6.2.x
+             - ruby: 2.x.x
+             - wget: x.x.x
+           - os_distribution: alpine
       interfaces:
        Standard:
          start:

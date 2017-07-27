@@ -1,9 +1,9 @@
+import logging
 import os
 import zipfile
-import logging
 from os import path
+
 from toscaparser.prereq.csar import CSAR
-from toscaparser.common.exception import ValidationError
 
 
 class CONST:

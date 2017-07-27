@@ -1,18 +1,15 @@
-import re
-import os
 import logging
-import traceback
+import os
+import re
 import sys
-from sys import argv
+import traceback
 from os import path
-from six import print_
-from six import StringIO
-from . import __version__
-from . import helper
-from . import analyser
-from .helper import Logger
-from .helper import CONST
+from sys import argv
 
+from six import StringIO, print_
+
+from . import __version__, analyser
+from .helper import CONST, Logger
 
 _USAGE = '''TosKeriser, a tool to complete TosKer application description with suitable Docker Images.
 

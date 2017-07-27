@@ -1,22 +1,20 @@
 import os
-import requests
-import requests_mock
-import logging
-import yaml
 from unittest import TestCase
-from six import print_
+
+import yaml
 from toscaparser.tosca_template import ToscaTemplate
 
-from toskeriser.helper import Logger, CONST
+import requests_mock
 from toskeriser.analyser import _analyse_description as analyse
+from toskeriser.helper import CONST
 
 
 class Test_All(TestCase):
 
     @classmethod
     def setUpClass(self):
-        self._file_path = 'toskeriser/tests/examples/example_all.yaml'
-        self._new_path = 'toskeriser/tests/examples/example_all.completed.yaml'
+        self._file_path = 'data/examples/example_all.yaml'
+        self._new_path = 'data/examples/example_all.completed.yaml'
         self._mock_responce = {
             'count': 1,
             'images': [
@@ -51,13 +49,13 @@ class Test_All(TestCase):
     def setUp(self):
         try:
             os.remove(self._new_path)
-        except FileNotFoundError:
+        except OSError:
             pass
 
     def tearDown(self):
         try:
             os.remove(self._new_path)
-        except FileNotFoundError:
+        except OSError:
             pass
 
     def test_all_default(self):
@@ -80,7 +78,8 @@ class Test_All(TestCase):
                       'node=6.2&ruby=2&wget=&distro=alpine'
 
             with requests_mock.Mocker() as m:
-                m.get('http://df.io/search?' + get_par, json=self._mock_responce)
+                m.get('http://df.io/search?' + get_par,
+                      json=self._mock_responce)
                 analyse(self._file_path, components=[], policy=policy,
                         constraints={}, interactive=False, force=False,
                         df_host='http://df.io')

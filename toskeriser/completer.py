@@ -1,11 +1,11 @@
-import requests
 import copy
 import re
-from six import string_types
+
+import requests
 from six import print_
+
 from . import helper
-from .helper import Logger
-from .helper import CONST
+from .helper import CONST, Logger
 
 _log = None
 
@@ -226,13 +226,14 @@ def _update_yaml(node, nodes_yaml, image):
     def format_software(image):
         return {s['software']: s['ver'] for s in image['softwares']}
 
+    properties = {
+        CONST.PROPERTY_SW: format_software(image),
+        CONST.PROPERTY_OS: image['distro']
+    }
+    properties.update(new_prop)
     nodes_yaml[container_name] = {
         'type': 'tosker.nodes.Container',
-        'properties': {
-            CONST.PROPERTY_SW: format_software(image),
-            CONST.PROPERTY_OS: image['distro'],
-            **new_prop
-        },
+        'properties': properties,
         'artifacts': {
             'my_image': {
                 'file': image['name'],

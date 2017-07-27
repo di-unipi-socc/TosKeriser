@@ -1,7 +1,71 @@
 # TosKeriser
 
-Tool to complete TosKer application description with suitable Docker Images.
+TosKeriser is a tool to complete [TosKer](https://github.com/di-unipi-socc/TosKer) applications with suitable Docker Images. The user can specify the software required by each component and the tool complete the specification with a suitable container to run the components.
 
+For instance the following application has a components called `server` require a set of software (node>=6.2, ruby>2 and any version of wget) and Debian as distribution.
+```
+...
+server:
+  type: tosker.nodes.Software
+  requirements:
+  - host:
+     node_filter:
+       properties:
+       - supported_sw:
+         - node: 6.2.x
+         - ruby: 2.x.x
+         - wget: x.x.x
+       - os_distribution: debian
+...
+```
+
+After run tosKeriser on this specification, it creates the component `server_container` and connects the `server` component to it. It is possible to see that the `server_container` has all the software required by `server` and has also Debian 8 as Linux distribution.
+
+```
+server:
+  type: tosker.nodes.Software
+  requirements:
+  - host:
+     node_filter:
+       properties:
+       - supported_sw:
+         - node: 6.2.x
+         - ruby: 2.x.x
+         - wget: x.x.x
+       - os_distribution: debian
+       node: server_container
+
+server_container:
+     type: tosker.nodes.Container
+     properties:
+       supported_sw:
+         node: 6.2.0
+         ash: 1.24.2
+         wget: 1.24.2
+         tar: 1.24.2
+         bash: 4.3.42
+         ruby: 2.3.1
+         httpd: 1.24.2
+         npm: 3.8.9
+         git: 2.8.3
+         erl: '2'
+         unzip: 1.24.2
+       os_distribution: Alpine Linux v3.4
+     artifacts:
+       my_image:
+         file: jekyll/jekyll:3.1.6
+         type: tosker.artifacts.Image
+         repository: docker_hub
+```
+
+More examples can be found in the `examples` folder.
+
+## Installation
+In is possible to install TosKeriser by using pip:
+```
+# pip install tosker
+```
+The minimum Python version supported is 2.7.
 
 ## Usage
 ```
@@ -26,3 +90,7 @@ OPTIONS
                                        (e.g. --constraints 'size<=100MB pulls>30 stars>10')
   --policy=top_rated|size|most_used    ordering of the images
 ```
+
+## License
+
+MIT license
