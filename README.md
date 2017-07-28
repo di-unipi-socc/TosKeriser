@@ -1,7 +1,31 @@
 # TosKeriser
+[![pipy](https://img.shields.io/pypi/v/toskeriser.svg)](https://pypi.python.org/pypi/toskeriser)
 
 TosKeriser is a tool to complete [TosKer](https://github.com/di-unipi-socc/TosKer) applications with suitable Docker Images. The user can specify the software required by each component and the tool complete the specification with a suitable container to run the components.
 
+It was first presented in 
+> _A. Brogi, D, Neri, L. Rinaldi, J. Soldani <br/>
+> **From (incomplete) TOSCA specs to running apps, with Docker.** <br/>
+> Submitted for publication_ 
+
+If you wish to reuse the tool or the sources contained in this repository, please properly cite the above mentioned paper. Below you can find the BibTex reference:
+```
+@misc{TosKeriser,
+  author = {Antonio Brogi and Davide Neri and Luca Rinaldi and Jacopo Soldani},
+  title = {{F}rom (incomplete) {TOSCA} specs to running apps, with {D}ocker,
+  note = {{\em [Submitted for publication]}}
+}
+```
+
+## Quick Guide
+### Installation
+In is possible to install TosKeriser by using pip:
+```
+# pip install toskeriser
+```
+The minimum Python version supported is 2.7.
+
+### Example of usage
 For instance the following application has a components called `server` require a set of software (node>=6.2, ruby>2 and any version of wget) and Alpine as Linux distribution.
 ```
 ...
@@ -62,14 +86,7 @@ server_container:
 
 More examples can be found in the `data/examples` folder.
 
-## Installation
-In is possible to install TosKeriser by using pip:
-```
-# pip install toskeriser
-```
-The minimum Python version supported is 2.7.
-
-## Usage
+## Usage guide
 ```
 toskerise FILE [COMPONENT..] [OPTIONS]
 toskerise --help|-h
