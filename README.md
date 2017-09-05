@@ -3,16 +3,16 @@
 
 TosKeriser is a tool to complete [TosKer](https://github.com/di-unipi-socc/TosKer) applications with suitable Docker Images. The user can specify the software required by each component and the tool complete the specification with a suitable container to run the components.
 
-It was first presented in 
+It was first presented in
 > _A. Brogi, D, Neri, L. Rinaldi, J. Soldani <br/>
-> **From (incomplete) TOSCA specs to running apps, with Docker.** <br/>
-> Submitted for publication_ 
+> **From (incomplete) TOSCA specifications to running applications, with Docker.** <br/>
+> Submitted for publication_
 
 If you wish to reuse the tool or the sources contained in this repository, please properly cite the above mentioned paper. Below you can find the BibTex reference:
 ```
 @misc{TosKeriser,
   author = {Antonio Brogi and Davide Neri and Luca Rinaldi and Jacopo Soldani},
-  title = {{F}rom (incomplete) {TOSCA} specs to running apps, with {D}ocker,
+  title = {{F}rom (incomplete) {TOSCA} specifications to running applications, with {D}ocker,
   note = {{\em [Submitted for publication]}}
 }
 ```
@@ -37,8 +37,8 @@ server:
        properties:
        - supported_sw:
          - node: 6.2.x
-         - ruby: 2.x.x
-         - wget: x.x.x
+         - ruby: 2.x
+         - wget: x
        - os_distribution: alpine
   ...
 ```
@@ -55,8 +55,8 @@ server:
        properties:
        - supported_sw:
          - node: 6.2.x
-         - ruby: 2.x.x
-         - wget: x.x.x
+         - ruby: 2.x
+         - wget: x
        - os_distribution: alpine
        node: server_container
   ...

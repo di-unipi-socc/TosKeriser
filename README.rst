@@ -7,6 +7,39 @@ suitable Docker Images. The user can specify the software required by
 each component and the tool complete the specification with a suitable
 container to run the components.
 
+It was first presented in > *A. Brogi, D, Neri, L. Rinaldi, J. Soldani >
+**From (incomplete) TOSCA specifications to running applications, with
+Docker.** > Submitted for publication*
+
+If you wish to reuse the tool or the sources contained in this
+repository, please properly cite the above mentioned paper. Below you
+can find the BibTex reference:
+
+::
+
+    @misc{TosKeriser,
+      author = {Antonio Brogi and Davide Neri and Luca Rinaldi and Jacopo Soldani},
+      title = {{F}rom (incomplete) {TOSCA} specifications to running applications, with {D}ocker,
+      note = {{\em [Submitted for publication]}}
+    }
+
+Quick Guide
+-----------
+
+Installation
+~~~~~~~~~~~~
+
+In is possible to install TosKeriser by using pip:
+
+::
+
+    # pip install toskeriser
+
+The minimum Python version supported is 2.7.
+
+Example of usage
+~~~~~~~~~~~~~~~~
+
 For instance the following application has a components called
 ``server`` require a set of software (node>=6.2, ruby>2 and any version
 of wget) and Alpine as Linux distribution.
@@ -22,8 +55,8 @@ of wget) and Alpine as Linux distribution.
            properties:
            - supported_sw:
              - node: 6.2.x
-             - ruby: 2.x.x
-             - wget: x.x.x
+             - ruby: 2.x
+             - wget: x
            - os_distribution: alpine
       ...
 
@@ -43,8 +76,8 @@ required by ``server`` and has also Alpine v3.4 as Linux distribution.
            properties:
            - supported_sw:
              - node: 6.2.x
-             - ruby: 2.x.x
-             - wget: x.x.x
+             - ruby: 2.x
+             - wget: x
            - os_distribution: alpine
            node: server_container
       ...
@@ -73,19 +106,8 @@ required by ``server`` and has also Alpine v3.4 as Linux distribution.
 
 More examples can be found in the ``data/examples`` folder.
 
-Installation
-------------
-
-In is possible to install TosKeriser by using pip:
-
-::
-
-    # pip install toskeriser
-
-The minimum Python version supported is 2.7.
-
-Usage
------
+Usage guide
+-----------
 
 ::
 
