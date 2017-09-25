@@ -88,3 +88,17 @@ def get_host_requirements(node):
                     r[k] = {}
                 return r[k]
     return None
+
+
+def get_host_node_filter(node):
+    requirement = get_host_requirements(node)
+
+    try:
+        properties = requirement['node_filter']['properties'] or []
+    except (TypeError,  KeyError):
+        properties = []
+    return properties
+
+
+def get_node_from_tpl(tosca, str_node):
+    return tosca.tpl['topology_template']['node_templates'][str_node]

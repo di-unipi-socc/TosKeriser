@@ -1,12 +1,12 @@
 import traceback
-from os import path
+# from os import path
 
 from six import print_, string_types
 from toscaparser.common.exception import ValidationError
 from toscaparser.tosca_template import ToscaTemplate
 import ruamel.yaml
 
-from . import completer, helper
+from . import completer, helper, merger
 from .helper import CONST, Logger
 
 _log = None
@@ -24,7 +24,7 @@ def analyse_description(file_path, components=[], policy=None,
     except ValidationError as e:
         print_('validation error:{}'.format(e))
     except Exception as e:
-        _log.error('error type {}'.format(type(e)))
+        _log.error('error type: {}, error: {}'.format(type(e), e))
         print_(', '.join(e.args))
 
 
@@ -50,6 +50,7 @@ def _analyse_description(file_path, components=[], policy=None,
                       components, policy,
                       constraints, interactive,
                       force, df_host)
+
 
 def _must_update(node, force):
     def is_software(node):
@@ -109,11 +110,14 @@ def _update_tosca(file_path, new_path,
                   df_host=CONST.DF_HOST):
     _log.debug('update TOSCA YAML file {} to {}'.format(file_path, new_path))
 
-    tosca = ToscaTemplate(file_path)
+    try:
+        tosca = ToscaTemplate(file_path)
+    except Exception as e:
+        _log.error(e)
     _log.debug('tosca: {}'.format(tosca))
 
-    path_name = path.dirname(file_path)
-    name = tosca.input_path.split('/')[-1][:-5]
+    # path_name = path.dirname(file_path)
+    # name = tosca.input_path.split('/')[-1][:-5]
 
     _check_components(tosca, components)
 
@@ -121,22 +125,38 @@ def _update_tosca(file_path, new_path,
                                              preserve_quotes=True)
     errors = []
     to_complete = False
-    if hasattr(tosca, 'nodetemplates'):
-        if tosca.nodetemplates:
-            for node in tosca.nodetemplates:
-                nodes_yaml = tosca_yaml['topology_template']['node_templates']
-                if len(components) == 0 or node.name in components:
-                    if _must_update(node, force):
-                        to_complete = True
-                        _log.debug('node {.name} is abstract'.format(node))
-                        try:
-                            completer.complete(node, nodes_yaml, tosca,
-                                               policy, constraints,
-                                               interactive, df_host)
-                        except Exception as e:
-                            _log.error('error: {}'.format(
-                                traceback.format_exc()))
-                            errors.append(' '.join(e.args))
+
+    # DEBUG
+    # for g in tosca.topology_template.groups:
+    #     _log.debug(g.name)
+    #     for m in g.members:
+    #         _log.debug(m)
+    # END DEBUG
+
+    for g in tosca.topology_template.groups:
+        properties = [helper.get_host_node_filter(
+                        helper.get_node_from_tpl(tosca, m)
+                      ) for m in g.members]
+        _log.debug('properties {}'.format(properties))
+        merger.merge(properties)
+
+    # if hasattr(tosca, 'nodetemplates'):
+        # if tosca.nodetemplates:
+    for node in tosca.nodetemplates:
+        nodes_yaml = tosca_yaml['topology_template']['node_templates']
+        if len(components) == 0 or node.name in components:
+            if _must_update(node, force):
+                to_complete = True
+                _log.debug('node {.name} is abstract'.format(node))
+                try:
+                    completer.complete(node, nodes_yaml, tosca,
+                                       policy, constraints,
+                                       interactive, df_host)
+                except Exception as e:
+                    _log.error('error: {}'.format(
+                        traceback.format_exc()))
+                    errors.append(' '.join(e.args))
+
 
     if len(errors) == 0 and to_complete:
         _write_updates(tosca_yaml, new_path)

@@ -15,13 +15,9 @@ def complete(node, nodes_yaml, tosca,
              df_host=CONST.DF_HOST):
     global _log
     _log = Logger.get(__name__)
-    requirement = helper.get_host_requirements(node)
 
-    try:
-        properties = requirement['node_filter']['properties'] or []
-    except (TypeError,  KeyError):
-        properties = []
-    _log.debug('r:{} p:{}'.format(requirement, properties))
+    properties = helper.get_host_node_filter(node)
+    _log.debug('properties: {}'.format(properties))
 
     query = _build_query(properties, policy, constraints)
     _log.debug('query {}'.format(query))
