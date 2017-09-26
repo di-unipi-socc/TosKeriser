@@ -25,6 +25,7 @@ def analyse_description(file_path, components=[], policy=None,
         print_('validation error:{}'.format(e))
     except Exception as e:
         _log.error('error type: {}, error: {}'.format(type(e), e))
+        _log.debug(traceback.format_exc())
         print_(', '.join(e.args))
 
 
@@ -156,7 +157,6 @@ def _update_tosca(file_path, new_path,
                     _log.error('error: {}'.format(
                         traceback.format_exc()))
                     errors.append(' '.join(e.args))
-
 
     if len(errors) == 0 and to_complete:
         _write_updates(tosca_yaml, new_path)
