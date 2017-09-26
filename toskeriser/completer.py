@@ -41,6 +41,12 @@ def complete(node, nodes_yaml, tosca,
                      image['size'] / 1000000, image['pulls'], image['stars']))
 
 
+def complete_group(node_filter, nodes_yaml, tosca,
+                   policy=None, constraints=None, interactive=False,
+                   df_host=CONST.DF_HOST):
+    pass
+
+
 def _build_query(properties, policy=None, constraints={}):
     policy = CONST.POLICY_TOP if policy is None else policy
     errors = []
