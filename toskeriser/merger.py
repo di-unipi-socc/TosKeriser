@@ -57,17 +57,25 @@ def _add_property(merged_p, new_p, f_merge=lambda x, y: x if x == y else None):
                 if res is not None:
                     merged_p[new_p_key][p_name] = res
                 else:
-                    raise Exception('Cannot merge properties')
+                    raise Exception('Cannot merge value "{}" with "{}" of '
+                                    'property "{}"'
+                                    ''.format(
+                                        merged_p[new_p_key][p_name],
+                                        p_value, new_p_key + '.' + p_name))
+
     # if the property to merge is a string
     else:
         if new_p_key not in merged_p:
             merged_p[new_p_key] = new_p_value
         else:
-            res = f_merge(merged_p[new_p_key][p_name], p_value)
+            res = f_merge(merged_p[new_p_key], new_p_value)
             if res is not None:
-                merged_p[new_p_key][p_name] = res
+                merged_p[new_p_key] = res
             else:
-                raise Exception('Cannot merge properties')
+                raise Exception('Cannot merge value "{}" with "{}" of '
+                                'property "{}"'
+                                ''.format(merged_p[new_p_key], new_p_value,
+                                          new_p_key))
 
 
 def _merge_version(v1, v2):
@@ -96,14 +104,3 @@ def _merge_version(v1, v2):
         return None
     else:
         return '.'.join(merged_version)
-
-    # for i, n in enumerate(v_longer):
-    #     if i >= len(v_smaller):
-    #         if n == v_smaller[i]:
-    #             merged_version.append(n)
-    #         else:
-    #             if n == 'x':
-    #                 merged_version + (v_smaller[i])
-    #             elif v_smaller[i] == 'x'
-    #                 merged_version.append(v_smaller[i])
-    # return '.'.join(merged_version)
