@@ -101,4 +101,8 @@ def get_host_node_filter(node):
 
 
 def get_node_from_tpl(tosca, str_node):
-    return tosca.tpl['topology_template']['node_templates'][str_node]
+    for node in tosca.nodetemplates:
+        if node.name == str_node:
+            return node
+    return None
+    # return tosca.tpl['topology_template']['node_templates'][str_node]
