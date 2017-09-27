@@ -53,7 +53,7 @@ def _analyse_description(file_path, components=[], policy=None,
                       force, df_host)
 
 
-def _must_update(node, force):
+def _must_update(node, force, components):
     def is_software(node):
         return True if node.type == CONST.SOFTWARE_TYPE else False
 
@@ -72,7 +72,8 @@ def _must_update(node, force):
         return has_requirement_key(node, 'node') or\
             isinstance(helper.get_host_requirements(node), string_types)
 
-    if is_software(node) and \
+    if is_software(node) and\
+       (len(components) == 0 or node.name in components) and\
        (not has_node(node) or (force and has_nodefilter(node))):
         return True
     return False
@@ -115,7 +116,6 @@ def _update_tosca(file_path, new_path,
         tosca = ToscaTemplate(file_path)
     except Exception as e:
         _log.error(e)
-    _log.debug('tosca: {}'.format(tosca))
 
     # path_name = path.dirname(file_path)
     # name = tosca.input_path.split('/')[-1][:-5]
@@ -134,21 +134,26 @@ def _update_tosca(file_path, new_path,
     #         _log.debug(m)
     # END DEBUG
 
-    componet_analysed = []
+    already_analysed = []
 
     nodes_yaml = tosca_yaml['topology_template']['node_templates']
     for g in tosca.topology_template.groups:
         properties = []
-        for m in g.members:
-            componet_analysed.append(m)
-            properties.append(helper.get_host_node_filter(
-                helper.get_node_from_tpl(tosca, m)
-            ))
-            _log.debug('properties {}'.format(properties))
-        merged_properties = merger.merge(properties)
+        members = [helper.get_node_from_tpl(tosca, m) for m in g.members]
+        if any((_must_update(n, force, components) for n in members)):
+            for m in members:
+                already_analysed.append(m.name)
+                properties.append(helper.get_host_node_filter(m))
 
+        _log.debug('properties {}'.format(properties))
+        merged_properties = merger.merge(properties)
+        _log.debug('merged properties {}'.format(merged_properties))
+
+        # TODO: check if the group must be updated
         try:
-            completer.complete_group(merged_properties, nodes_yaml, tosca,
+            _log.debug('start completation of group {}'.format(g.name))
+            to_complete = True
+            completer.complete_group(g, merged_properties, nodes_yaml,
                                      policy, constraints, interactive, df_host)
         except Exception as e:
             errors.append(' '.join(e.args))
@@ -156,19 +161,22 @@ def _update_tosca(file_path, new_path,
 
     # if hasattr(tosca, 'nodetemplates'):
         # if tosca.nodetemplates:
-    for node in tosca.nodetemplates:
-        if (len(components) == 0 or node.name in components) and\
-           node.name not in componet_analysed:
-            if _must_update(node, force):
-                to_complete = True
-                _log.debug('node {.name} is abstract'.format(node))
-                try:
-                    completer.complete(node, nodes_yaml, tosca,
-                                       policy, constraints,
-                                       interactive, df_host)
-                except Exception as e:
-                    errors.append(' '.join(e.args))
-                    _log.debug(traceback.format_exc())
+
+    # remove the node that are already processed as part of a group
+    for node in (n for n in tosca.nodetemplates
+                 if n.name not in already_analysed):
+        if _must_update(node, force, components):
+            to_complete = True
+            _log.debug('node {.name} is abstract'.format(node))
+            try:
+                _log.debug('start completation of node {}'
+                           ''.format(node.name))
+                completer.complete(node, nodes_yaml, tosca,
+                                   policy, constraints,
+                                   interactive, df_host)
+            except Exception as e:
+                errors.append(' '.join(e.args))
+                _log.debug(traceback.format_exc())
 
     if len(errors) == 0 and to_complete:
         _write_updates(tosca_yaml, new_path)
