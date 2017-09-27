@@ -34,8 +34,8 @@ topology_template:
          node_filter:
            properties:
            - supported_sw:
-             - node: 6.2.1
-             - wget: x
+             - node: 6.2.0
+             - wget: 1.x
       interfaces:
        Standard:
          start:

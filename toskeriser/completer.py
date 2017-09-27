@@ -19,18 +19,12 @@ def complete(node, nodes_yaml, tosca,
     properties = helper.get_host_node_filter(node)
     _log.debug('properties: {}'.format(properties))
 
-    query = _build_query(properties, policy, constraints)
-    _log.debug('query {}'.format(query))
+    count, images = _get_images(properties, policy, constraints, df_host)
 
-    responce = _request(query, df_host)
-    images = responce['images']
-    _log.debug('returned images..')
-
-    if len(images) < 1:
+    if count == 0:
         raise Exception('no image found for container "{}"'.format(node.name))
 
-    print_('founded {[count]} images for "{.name}"'
-           ' component'.format(responce, node))
+    print_('founded {:0} images for "{.name}" component'.format(count, node))
 
     image = _choose_image(images, interactive)
 
@@ -41,10 +35,43 @@ def complete(node, nodes_yaml, tosca,
                      image['size'] / 1000000, image['pulls'], image['stars']))
 
 
-def complete_group(node_filter, nodes_yaml, tosca,
+def complete_group(group, properties, nodes_yaml,
                    policy=None, constraints=None, interactive=False,
                    df_host=CONST.DF_HOST):
-    pass
+
+    count, images = _get_images(properties, policy, constraints, df_host)
+
+    if count == 0:
+        raise Exception('no image found for group "{}"'.format(group.name))
+
+    print_('founded {} images for group "{}" component'
+           ''.format(count, group.name))
+
+    image = _choose_image(images, interactive)
+
+    _update_group_yaml(group, properties, nodes_yaml, image)
+
+    print_('complete group "{}" with image "{}" '
+           '({:.2f} MB, {} pulls, {} stars)'
+           ''.format(group.name, image['name'], image['size'] / 1000000,
+                     image['pulls'], image['stars']))
+
+
+def _get_images(properties,
+                policy=None, constraints=None, df_host=CONST.DF_HOST):
+    global _log
+    _log = Logger.get(__name__)
+
+    query = _build_query(properties, policy, constraints)
+    _log.debug('query {}'.format(query))
+
+    responce = _request(query, df_host)
+    images = responce['images']
+    _log.debug('returned images..')
+
+    if len(images) < 1:
+        return 0, None
+    return responce['count'], images
 
 
 def _build_query(properties, policy=None, constraints={}):
@@ -209,21 +236,42 @@ def _choose_image(images, interactive=False):
 
 
 def _update_yaml(node, nodes_yaml, image):
+    # update host requirement of all node of the group
     container_name = '{}_container'.format(node.name)
     req_node_yaml = helper.get_host_requirements(nodes_yaml[node.name])
     req_node_yaml['node'] = container_name
 
+    # add container node to the template
     try:
         prop = req_node_yaml['node_filter']['properties']
     except KeyError:
         prop = []
+    nodes_yaml[container_name] = _build_container_node(image, prop)
 
-    def list_to_map(l):
-        return {k: v for i in l for k, v in i.items()}
 
-    new_prop = {k: copy.deepcopy(list_to_map(v) if isinstance(v, list) else v)
-                for p in prop for k, v in p.items()
-                if CONST.PROPERTY_SW != k and CONST.PROPERTY_OS != k}
+def _update_group_yaml(group, node_filter, nodes_yaml, image):
+    # update host requirement of all node of the group
+    container_name = '{}_container'.format(group.name)
+    for m in group.members:
+        req_node_yaml = helper.get_host_requirements(nodes_yaml[m])
+        req_node_yaml['node'] = container_name
+
+    # add container node to the template
+    nodes_yaml[container_name] = _build_container_node(image, node_filter)
+
+
+def _build_container_node(image, node_filter):
+    def node_filter_to_property(node_filter):
+        def list_to_map(l):
+            return {k: v for i in l for k, v in i.items()}
+
+        new_prop = {k: copy.deepcopy(list_to_map(v)
+                                     if isinstance(v, list) else v)
+                    for p in node_filter for k, v in p.items()
+                    if CONST.PROPERTY_SW != k and CONST.PROPERTY_OS != k}
+        return new_prop
+
+    new_prop = node_filter_to_property(node_filter)
 
     def format_software(image):
         return {s['software']: s['ver'] for s in image['softwares']}
@@ -233,7 +281,8 @@ def _update_yaml(node, nodes_yaml, image):
         CONST.PROPERTY_OS: image['distro']
     }
     properties.update(new_prop)
-    nodes_yaml[container_name] = {
+
+    return {
         'type': 'tosker.nodes.Container',
         'properties': properties,
         'artifacts': {
