@@ -1,5 +1,5 @@
 import traceback
-# from os import path
+import re
 
 from six import print_, string_types
 from toscaparser.common.exception import ValidationError
@@ -13,14 +13,15 @@ _log = None
 
 
 def analyse_description(file_path, components=[], policy=None,
-                        constraints={}, interactive=False, force=False,
+                        constraints={}, groups=[],
+                        interactive=False, force=False,
                         df_host=CONST.DF_HOST):
     global _log
     _log = Logger.get(__name__)
 
     try:
         _analyse_description(file_path, components, policy, constraints,
-                             interactive, force, df_host)
+                             groups, interactive, force, df_host)
     except ValidationError as e:
         print_('Validation error:{}'.format(e))
     except Exception as e:
@@ -30,8 +31,8 @@ def analyse_description(file_path, components=[], policy=None,
 
 
 def _analyse_description(file_path, components=[], policy=None,
-                         constraints={}, interactive=False, force=False,
-                         df_host=CONST.DF_HOST):
+                         constraints={}, groups=[], interactive=False,
+                         force=False, df_host=CONST.DF_HOST):
     global _log
     _log = Logger.get(__name__)
 
@@ -39,18 +40,16 @@ def _analyse_description(file_path, components=[], policy=None,
         _log.debug('CSAR founded')
         csar_tmp_path, yaml_path = helper.unpack_csar(file_path)
         _update_tosca(yaml_path, yaml_path,
-                      components, policy,
-                      constraints, interactive,
-                      force, df_host)
+                      components, policy, constraints, groups,
+                      interactive, force, df_host)
         new_path = _gen_new_path(file_path, 'completed')
         helper.pack_csar(csar_tmp_path, new_path)
     else:
         _log.debug('YAML founded')
         new_path = _gen_new_path(file_path, 'completed')
         _update_tosca(file_path, new_path,
-                      components, policy,
-                      constraints, interactive,
-                      force, df_host)
+                      components, policy, constraints, groups,
+                      interactive, force, df_host)
 
 
 def _must_update(node, force, components):
@@ -107,9 +106,8 @@ def _check_components(tosca, components):
 
 
 def _update_tosca(file_path, new_path,
-                  components=[], policy=None,
-                  constraints={}, interactive=False, force=False,
-                  df_host=CONST.DF_HOST):
+                  components=[], policy=None, constraints={}, groups=[],
+                  interactive=False, force=False, df_host=CONST.DF_HOST):
     _log.debug('update TOSCA YAML file {} to {}'.format(file_path, new_path))
 
     try:
@@ -176,6 +174,30 @@ def _update_tosca(file_path, new_path,
 
 
 def _validate_node_filter(tosca):
-    # TODO: implement validation of the node_filter properties
-    return
-    raise Exception('node_filter validation error')
+    errors = []
+    for node in tosca.nodetemplates:
+        node_filter = helper.get_host_node_filter(node)
+        for n in node_filter:
+            key, value = list(n.items())[0]
+            if CONST.PROPERTY_OS == key:
+                if not isinstance(value, str):
+                    errors.append('On node "{}" property "{}" must be a string'
+                                  '.'.format(node.name, CONST.PROPERTY_OS))
+            elif CONST.PROPERTY_SW == key:
+                if isinstance(value, list):
+                    for software in value:
+                        s, v = list(software.items())[0]
+                        match = re.match('^([0-9]+.)*([0-9]+|x)?$', str(v))
+                        if not isinstance(v, str) or match is None:
+                            errors.append(
+                                'On node "{}" software version "{}:{}" '
+                                'must be a string with this pattern '
+                                '([0-9].)*[0-9]+ or ([0-9].)*x '
+                                '(i.e. 1.2.2, 1.2.x).'
+                                ''.format(node.name, s, v))
+            else:
+                # TODO: check if other property are container one
+                pass
+
+    if len(errors) != 0:
+        raise Exception(*errors)
