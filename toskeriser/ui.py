@@ -38,6 +38,7 @@ _log = None
 
 def run():
     global _log
+    # TODO: add a parameter to specify new groups at runtime
     if len(argv) > 1:
         try:
             file_path, comps, flags, params = _parse_input(argv[1:])
@@ -156,7 +157,6 @@ def _parse_input(args):
         return file_name
 
     def get_value(i):
-        value = []
         old_i = i
         while i < len(args) and (not p1.match(args[i]) and
                                  not p2.match(args[i])):

@@ -126,13 +126,6 @@ def _update_tosca(file_path, new_path,
     errors = []
     to_complete = False
 
-    # DEBUG
-    # for g in tosca.topology_template.groups:
-    #     _log.debug(g.name)
-    #     for m in g.members:
-    #         _log.debug(m)
-    # END DEBUG
-
     already_analysed = []
 
     nodes_yaml = tosca_yaml['topology_template']['node_templates']
