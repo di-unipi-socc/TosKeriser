@@ -1,27 +1,33 @@
-from .helper import Logger
+import traceback
 
+from .helper import Logger
 _log = None
 
 
 def merge(nodes_property):
-    # TODO: validate node_filter before merge
     global _log
     _log = Logger.get(__name__)
 
     merged_properties = {}
-
+    errors = []
     for n in nodes_property:
         for p in n:
             key, value = list(p.items())[0]
             _log.debug('k:{} v:{}'.format(key, value))
 
-            if 'os_distribution' == key:
-                _add_property(merged_properties, p)
-            elif 'supported_sw' == key:
-                _add_property(merged_properties, p, f_merge=_merge_version)
-            else:
-                _add_property(merged_properties, p)
+            try:
+                if 'os_distribution' == key:
+                    _add_property(merged_properties, p)
+                elif 'supported_sw' == key:
+                    _add_property(merged_properties, p, f_merge=_merge_version)
+                else:
+                    _add_property(merged_properties, p)
+            except Exception as e:
+                _log.debug(traceback.format_exc())
+                errors += e.args
 
+    if len(errors) != 0:
+        raise Exception(*errors)
     _log.debug(merged_properties)
     p_list = _convert_to_list(merged_properties)
     _log.debug(p_list)
@@ -42,6 +48,7 @@ def _add_property(merged_p, new_p, f_merge=lambda x, y: x if x == y else None):
     '''
     new_p_key, new_p_value = list(new_p.items())[0]
 
+    errors = []
     # if the property to merge is a list
     if isinstance(new_p_value, list):
         if new_p_key not in merged_p:
@@ -57,11 +64,11 @@ def _add_property(merged_p, new_p, f_merge=lambda x, y: x if x == y else None):
                 if res is not None:
                     merged_p[new_p_key][p_name] = res
                 else:
-                    raise Exception('Cannot merge value "{}" with "{}" of '
-                                    'property "{}"'
-                                    ''.format(
-                                        merged_p[new_p_key][p_name],
-                                        p_value, new_p_key + '.' + p_name))
+                    errors.append('Cannot merge value "{}" with "{}" of '
+                                  'property "{}"'
+                                  ''.format(
+                                      merged_p[new_p_key][p_name],
+                                      p_value, new_p_key + '.' + str(p_name)))
 
     # if the property to merge is a string
     else:
@@ -72,10 +79,13 @@ def _add_property(merged_p, new_p, f_merge=lambda x, y: x if x == y else None):
             if res is not None:
                 merged_p[new_p_key] = res
             else:
-                raise Exception('Cannot merge value "{}" with "{}" of '
-                                'property "{}"'
-                                ''.format(merged_p[new_p_key], new_p_value,
-                                          new_p_key))
+                errors.append('Cannot merge value "{}" with "{}" of '
+                              'property "{}"'
+                              ''.format(merged_p[new_p_key], new_p_value,
+                                        new_p_key))
+
+    if len(errors) != 0:
+        raise Exception(*errors)
 
 
 def _merge_version(v1, v2):

@@ -22,11 +22,11 @@ def analyse_description(file_path, components=[], policy=None,
         _analyse_description(file_path, components, policy, constraints,
                              interactive, force, df_host)
     except ValidationError as e:
-        print_('validation error:{}'.format(e))
+        print_('Validation error:{}'.format(e))
     except Exception as e:
         _log.error('error type: {}, error: {}'.format(type(e), e))
         _log.debug(traceback.format_exc())
-        print_(', '.join(e.args))
+        print_('ERRORS:\n- {}'.format('\n- '.join(e.args)))
 
 
 def _analyse_description(file_path, components=[], policy=None,
@@ -117,8 +117,7 @@ def _update_tosca(file_path, new_path,
     except Exception as e:
         _log.error(e)
 
-    # path_name = path.dirname(file_path)
-    # name = tosca.input_path.split('/')[-1][:-5]
+    _validate_node_filter(tosca)
 
     _check_components(tosca, components)
 
@@ -145,22 +144,19 @@ def _update_tosca(file_path, new_path,
                 already_analysed.append(m.name)
                 properties.append(helper.get_host_node_filter(m))
 
-        _log.debug('properties {}'.format(properties))
-        merged_properties = merger.merge(properties)
-        _log.debug('merged properties {}'.format(merged_properties))
+            _log.debug('properties {}'.format(properties))
+            merged_properties = merger.merge(properties)
+            _log.debug('merged properties {}'.format(merged_properties))
 
-        # TODO: check if the group must be updated
-        try:
-            _log.debug('start completation of group {}'.format(g.name))
-            to_complete = True
-            completer.complete_group(g, merged_properties, nodes_yaml,
-                                     policy, constraints, interactive, df_host)
-        except Exception as e:
-            errors.append(' '.join(e.args))
-            _log.debug(traceback.format_exc())
-
-    # if hasattr(tosca, 'nodetemplates'):
-        # if tosca.nodetemplates:
+            try:
+                _log.debug('start completation of group {}'.format(g.name))
+                completer.complete_group(g, merged_properties, nodes_yaml,
+                                         policy, constraints, interactive,
+                                         df_host)
+                to_complete = True
+            except Exception as e:
+                errors.append(' '.join(e.args))
+                _log.debug(traceback.format_exc())
 
     # remove the node that are already processed as part of a group
     for node in (n for n in tosca.nodetemplates
@@ -181,6 +177,12 @@ def _update_tosca(file_path, new_path,
     if len(errors) == 0 and to_complete:
         _write_updates(tosca_yaml, new_path)
     elif len(errors) > 0:
-        raise Exception('ERRORS:\n{}'.format('\n'.join(errors)))
+        raise Exception(*errors)
     else:
         raise Exception('no abstract node founded')
+
+
+def _validate_node_filter(tosca):
+    # TODO: implement validation of the node_filter properties
+    return
+    raise Exception('node_filter validation error')

@@ -244,7 +244,7 @@ def _update_yaml(node, nodes_yaml, image):
     # add container node to the template
     try:
         prop = req_node_yaml['node_filter']['properties']
-    except KeyError:
+    except (KeyError, TypeError):
         prop = []
     nodes_yaml[container_name] = _build_container_node(image, prop)
 
@@ -271,7 +271,8 @@ def _build_container_node(image, node_filter):
                     if CONST.PROPERTY_SW != k and CONST.PROPERTY_OS != k}
         return new_prop
 
-    new_prop = node_filter_to_property(node_filter)
+    new_prop = node_filter_to_property(node_filter)\
+        if node_filter is not None else {}
 
     def format_software(image):
         return {s['software']: s['ver'] for s in image['softwares']}
