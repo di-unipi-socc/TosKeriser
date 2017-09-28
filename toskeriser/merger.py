@@ -1,6 +1,7 @@
 import traceback
 
-from .helper import Logger
+from .helper import Logger, CONST
+
 _log = None
 
 
@@ -16,9 +17,9 @@ def merge(nodes_property):
             _log.debug('k:{} v:{}'.format(key, value))
 
             try:
-                if 'os_distribution' == key:
+                if CONST.PROPERTY_OS == key:
                     _add_property(merged_properties, p)
-                elif 'supported_sw' == key:
+                elif CONST.PROPERTY_SW == key:
                     _add_property(merged_properties, p, f_merge=_merge_version)
                 else:
                     _add_property(merged_properties, p)

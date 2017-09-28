@@ -5,6 +5,7 @@ import sys
 import traceback
 from os import path
 from sys import argv
+from copy import copy
 
 from six import StringIO, print_
 
@@ -72,12 +73,16 @@ def run():
     policy = params.get('policy', None)
     _log.debug('policy {}'.format(policy))
 
+    groups = params.get('group', [])
+    _log.debug('group {}'.format(groups))
+
     df_host = os.environ.get('DOCKERFINDER_HOST', CONST.DF_HOST)
     _log.debug('DF_HOST: {}'.format(df_host))
     try:
         analyser.analyse_description(file_path, components=comps,
                                      policy=policy,
                                      constraints=constraint,
+                                     groups=groups,
                                      interactive=flags.get(
                                          'interactive', False),
                                      force=flags.get('force', False),
@@ -90,7 +95,7 @@ def run():
             sys.stdout = old_target
 
 
-def _parse_contraint(con):
+def _parse_contraint(con, params=None):
     ret = {}
     size_re = re.compile('(?<=size)\s*(>|<|=|>=|<=)\s*[0-9]+[A-z]+')
     pulls_re = re.compile('(?<=pulls)\s*(>|<|=|>=|<=)\s*[0-9]+')
@@ -111,13 +116,23 @@ def _parse_contraint(con):
     return ret
 
 
-def _parse_policy(policy):
+def _parse_policy(policy, params=None):
     if policy is not None and\
        policy not in (CONST.POLICY_TOP, CONST.POLICY_SIZE, CONST.POLICY_USED):
         raise Exception('policy must be "{0.POLICY_TOP}", '
                         '"{0.POLICY_SIZE}" or "{0.POLICY_USED}"'.format(CONST))
     else:
         return policy
+
+
+def _parse_group(group, params=None):
+    if group is not None:
+        group_list = [x.strip() for x in group.split(',')]
+        if params is not None:
+            params.append(group_list)
+            return params
+        else:
+            return [group_list]
 
 
 _FLAG = {
@@ -136,7 +151,8 @@ _FLAG = {
 
 _PARAMS = {
     '--policy': _parse_policy,
-    '--constraints': _parse_contraint
+    '--constraints': _parse_contraint,
+    '--group': _parse_group
 }
 
 
@@ -173,7 +189,9 @@ def _parse_input(args):
                     not p1.match(args[i + 1]) and
                         not p2.match(args[i + 1])):
                     value, new_i = get_value(i + 1)
-                    params[args[i][2:]] = _PARAMS[args[i]](value)
+                    params[args[i][2:]] = _PARAMS[args[i]](
+                        value,
+                        copy(params.get(args[i][2:], None)))
                     i = new_i
                     continue
                 else:
