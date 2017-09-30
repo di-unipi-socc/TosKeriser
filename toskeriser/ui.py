@@ -12,7 +12,8 @@ from six import StringIO, print_
 from . import __version__, analyser
 from .helper import CONST, Logger
 
-_USAGE = '''TosKeriser, a tool to complete TosKer application description with suitable Docker Images.
+_USAGE = '''TosKeriser, a tool to complete TosKer application description with
+suitable Docker Images.
 
 toskerise FILE [COMPONENT..] [OPTIONS]
 toskerise --help|-h
@@ -30,8 +31,10 @@ OPTIONS
   -i|--interactive                     active interactive mode
   -f|--force                           force the update of all containers
   --constraints=value                  constraint to give to DockerFinder
-                                       (e.g. --constraints 'size<=100MB pulls>30 stars>10')
+                                       (e.g. --constraints 'size<=99MB pulls>30
+                                                            stars>10')
   --policy=top_rated|size|most_used    ordering of the images
+  --group=comp1,...,compN              create a new component group
 '''
 
 _log = None
