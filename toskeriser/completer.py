@@ -253,7 +253,7 @@ def _update_group_yaml(group, node_filter, nodes_yaml, image):
     # update host requirement of all node of the group
     container_name = '{}_container'.format(group.name)
     for m in group.members:
-        req_node_yaml = helper.get_host_requirements(nodes_yaml[m])
+        req_node_yaml = helper.get_host_requirements(nodes_yaml[m.name])
         req_node_yaml['node'] = container_name
 
     # add container node to the template

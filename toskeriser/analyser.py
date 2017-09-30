@@ -1,5 +1,6 @@
 import traceback
 import re
+from copy import copy
 
 from six import print_, string_types
 from toscaparser.common.exception import ValidationError
@@ -36,17 +37,17 @@ def _analyse_description(file_path, components=[], policy=None,
     global _log
     _log = Logger.get(__name__)
 
+    new_path = _gen_new_path(file_path, 'completed')
+
     if file_path.endswith(('.zip', '.csar', '.CSAR')):
         _log.debug('CSAR founded')
         csar_tmp_path, yaml_path = helper.unpack_csar(file_path)
         _update_tosca(yaml_path, yaml_path,
                       components, policy, constraints, groups,
                       interactive, force, df_host)
-        new_path = _gen_new_path(file_path, 'completed')
         helper.pack_csar(csar_tmp_path, new_path)
     else:
         _log.debug('YAML founded')
-        new_path = _gen_new_path(file_path, 'completed')
         _update_tosca(file_path, new_path,
                       components, policy, constraints, groups,
                       interactive, force, df_host)
@@ -108,8 +109,8 @@ def _check_components(tosca, components):
 def _update_tosca(file_path, new_path,
                   components=[], policy=None, constraints={}, groups=[],
                   interactive=False, force=False, df_host=CONST.DF_HOST):
+    # TODO: split this method
     _log.debug('update TOSCA YAML file {} to {}'.format(file_path, new_path))
-
     try:
         tosca = ToscaTemplate(file_path)
     except Exception as e:
@@ -126,12 +127,22 @@ def _update_tosca(file_path, new_path,
 
     already_analysed = []
 
+    new_groups = _merge_groups(tosca.topology_template.groups, groups)
+    _log.debug('merged_groups {}'.format(new_groups))
+
+    class Group:
+
+        def __init__(self, name, members):
+            self.name = name
+            self.members = members
+
     nodes_yaml = tosca_yaml['topology_template']['node_templates']
-    for g in tosca.topology_template.groups:
+    for name, members in new_groups.items():
+        group = Group(name,
+                      [helper.get_node_from_tpl(tosca, m) for m in members])
         properties = []
-        members = [helper.get_node_from_tpl(tosca, m) for m in g.members]
-        if any((_must_update(n, force, components) for n in members)):
-            for m in members:
+        if any((_must_update(n, force, components) for n in group.members)):
+            for m in group.members:
                 already_analysed.append(m.name)
                 properties.append(helper.get_host_node_filter(m))
 
@@ -140,8 +151,8 @@ def _update_tosca(file_path, new_path,
             _log.debug('merged properties {}'.format(merged_properties))
 
             try:
-                _log.debug('start completation of group {}'.format(g.name))
-                completer.complete_group(g, merged_properties, nodes_yaml,
+                _log.debug('start completation of group {}'.format(group.name))
+                completer.complete_group(group, merged_properties, nodes_yaml,
                                          policy, constraints, interactive,
                                          df_host)
                 to_complete = True
@@ -171,6 +182,40 @@ def _update_tosca(file_path, new_path,
         raise Exception(*errors)
     else:
         raise Exception('no abstract node founded')
+
+
+def _merge_groups(tosca_groups, cmd_groups):
+    groups = {g.name: g.members for g in tosca_groups}
+    groups.update(
+        {'-'.join(members): members for members in cmd_groups}
+    )
+    _log.debug('groups before merge {}'.format(groups))
+    keep = {name: True for name in groups.keys()}
+
+    def merge(g1, g2):
+        groups[g1] = list(set(groups[g1] + groups[g2]))
+        groups[g2] = groups[g1]
+        keep[g1] = True
+        keep[g2] = False
+        return g1
+
+    for group in cmd_groups:
+        to_merge = '-'.join(group)
+        for member in group:
+            groups_set = set([k for k in groups.keys()
+                              if k != to_merge and keep[k]])
+            while len(groups_set) > 0:
+                name = groups_set.pop()
+                members = groups[name]
+                if member in members and to_merge != name:
+                    if to_merge in groups_set:
+                        groups_set.remove(to_merge)
+                    to_merge = merge(name, to_merge)
+                    _log.debug('merge {} with {}'.format(to_merge, name))
+                    groups_set.add(to_merge)
+
+    # _log.debug('keep {}'.format(keep))
+    return {k: v for k, v in groups.items() if keep[k]}
 
 
 def _validate_node_filter(tosca):

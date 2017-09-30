@@ -93,9 +93,10 @@ topology_template:
          node_filter:
            properties:
            - supported_sw:
-             - erl: 2.x
+             - erl: x
+             - ruby: 2.x
              - unzip: x
-           - os_distribution: debian
+          #  - os_distribution: debian
       interfaces:
        Standard:
          start:
