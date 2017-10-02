@@ -1,6 +1,7 @@
 import traceback
 
 from .helper import Logger, CONST
+from .exceptions import TosKeriserException
 
 _log = None
 
@@ -17,18 +18,16 @@ def merge(nodes_property):
             _log.debug('k:{} v:{}'.format(key, value))
 
             try:
-                if CONST.PROPERTY_OS == key:
-                    _add_property(merged_properties, p)
-                elif CONST.PROPERTY_SW == key:
+                if CONST.PROPERTY_SW == key:
                     _add_property(merged_properties, p, f_merge=_merge_version)
                 else:
+                    # if CONST.PROPERTY_SW of other properties
                     _add_property(merged_properties, p)
-            except Exception as e:
-                _log.debug(traceback.format_exc())
-                errors += e.args
+            except TosKeriserException as e:
+                errors += e.stack
 
     if len(errors) != 0:
-        raise Exception(*errors)
+        raise TosKeriserException(*errors)
     _log.debug(merged_properties)
     p_list = _convert_to_list(merged_properties)
     _log.debug(p_list)
@@ -86,7 +85,7 @@ def _add_property(merged_p, new_p, f_merge=lambda x, y: x if x == y else None):
                                         new_p_key))
 
     if len(errors) != 0:
-        raise Exception(*errors)
+        raise TosKeriserException(*errors)
 
 
 def _merge_version(v1, v2):

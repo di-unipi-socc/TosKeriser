@@ -2,7 +2,6 @@ import logging
 import os
 import re
 import sys
-import traceback
 from os import path
 from sys import argv
 from copy import copy
@@ -11,6 +10,8 @@ from six import StringIO, print_
 
 from . import __version__, analyser
 from .helper import CONST, Logger
+from .exceptions import TosKeriserException
+
 
 _USAGE = '''TosKeriser, a tool to complete TosKer application description with
 suitable Docker Images.
@@ -42,7 +43,6 @@ _log = None
 
 def run():
     global _log
-    # TODO: add a parameter to specify new groups at runtime
     if len(argv) > 1:
         try:
             file_path, comps, flags, params = _parse_input(argv[1:])
@@ -90,9 +90,8 @@ def run():
                                          'interactive', False),
                                      force=flags.get('force', False),
                                      df_host=df_host)
-    except Exception as e:
-        _log.debug('error: {}'.format(traceback.format_exc()))
-        print_(' '.join(e.args))
+    except TosKeriserException as e:
+        print_('ERRORS:\n{}'.format(e))
     finally:
         if flags.get('quiet', False):
             sys.stdout = old_target

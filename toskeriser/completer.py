@@ -6,6 +6,7 @@ from six import print_
 
 from . import helper
 from .helper import CONST, Logger
+from .exceptions import TosKeriserException
 
 _log = None
 
@@ -22,7 +23,8 @@ def complete(node, nodes_yaml, tosca,
     count, images = _get_images(properties, policy, constraints, df_host)
 
     if count == 0:
-        raise Exception('no image found for container "{}"'.format(node.name))
+        raise TosKeriserException(
+            'no image found for container "{}"'.format(node.name))
 
     print_('founded {:0} images for "{.name}" component'.format(count, node))
 
@@ -42,7 +44,8 @@ def complete_group(group, properties, nodes_yaml,
     count, images = _get_images(properties, policy, constraints, df_host)
 
     if count == 0:
-        raise Exception('no image found for group "{}"'.format(group.name))
+        raise TosKeriserException(
+            'no image found for group "{}"'.format(group.name))
 
     print_('founded {} images for group "{}" component'
            ''.format(count, group.name))
@@ -88,11 +91,13 @@ def _build_query(properties, policy=None, constraints={}):
                 return value
             elif op in ('greater_or_equal', 'greater_than',
                         'less_than', 'less_or_equal'):
-                raise Exception('in parsing {}: function not supported'
-                                ''.format(f))
+                raise TosKeriserException(
+                    'in parsing {}: function not supported'
+                    ''.format(f))
             else:
-                raise Exception('in parsing {}: function not recognise'
-                                ''.format(f))
+                raise TosKeriserException(
+                    'in parsing {}: function not recognise'
+                    ''.format(f))
 
     def parse_version(s):
         s = parse_functions(str(s))
@@ -101,8 +106,9 @@ def _build_query(properties, policy=None, constraints={}):
             version = re.match('[0-9]+(\\.[0-9]+)*', s)
             return version.group(0) if version is not None else ''
         else:
-            raise Exception('in parsing {}: version format is not correct'
-                            ''.format(s))
+            raise TosKeriserException(
+                'in parsing {}: version format is not correct'
+                ''.format(s))
 
     def parse_unit(s):
         # bytes -> bytes
@@ -119,7 +125,8 @@ def _build_query(properties, policy=None, constraints={}):
         elif s.endswith('gb'):
             return int(s[:-2]) * 1000 * 1000 * 1000
         else:
-            raise Exception('in parsing {}: unit not recognise'.format(s))
+            raise TosKeriserException(
+                'in parsing {}: unit not recognise'.format(s))
 
     def parse_op(s):
         if s.startswith('>='):
@@ -131,7 +138,8 @@ def _build_query(properties, policy=None, constraints={}):
         elif s.startswith('<'):
             return 'lt', s[1:]
         else:
-            raise Exception('in parsing {}: operator not recognise'.format(s))
+            raise TosKeriserException(
+                'in parsing {}: operator not recognise'.format(s))
 
     def parse_unit_limit(s):
         s = s.strip()
@@ -159,36 +167,36 @@ def _build_query(properties, policy=None, constraints={}):
                 (k, v), = s.items()
                 try:
                     query[k.lower()] = parse_version(v)
-                except Exception as e:
-                    errors.append(e.args[0])
+                except TosKeriserException as e:
+                    errors += e.stack
         if CONST.PROPERTY_OS in p:
             try:
                 query['distro'] = parse_functions(p[CONST.PROPERTY_OS])
-            except Exception as e:
-                errors.append(e.args[0])
+            except TosKeriserException as e:
+                errors += e.stack
 
     if 'size' in constraints:
         try:
             _log.debug('size {}'.format(constraints['size']))
             op, num = parse_unit_limit(constraints['size'])
             query['size_{}'.format(op)] = num
-        except Exception as e:
-            errors.append(e.args[0])
+        except TosKeriserException as e:
+            errors += e.stack
     if 'pulls' in constraints:
         try:
             op, num = parse_limit(constraints['pulls'])
             query['pulls_{}'.format(op)] = num
-        except Exception as e:
-            errors.append(e.args[0])
+        except TosKeriserException as e:
+            errors += e.stack
     if 'stars' in constraints:
         try:
             op, num = parse_limit(constraints['stars'])
             query['stars_{}'.format(op)] = num
-        except Exception as e:
-            errors.append(e.args[0])
+        except TosKeriserException as e:
+            errors += e.stack
 
     if len(errors) > 0:
-        raise Exception('\n'.join(errors))
+        raise TosKeriserException(*errors)
 
     return query
 
@@ -204,7 +212,7 @@ def _request(query, df_host):
     json = ret.json()
     if 'images' in json:
         return json
-    raise Exception('Dockerfinder server error')
+    raise TosKeriserException('Dockerfinder server error')
 
 
 def _choose_image(images, interactive=False):

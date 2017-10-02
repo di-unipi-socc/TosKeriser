@@ -1,6 +1,5 @@
 import traceback
 import re
-from copy import copy
 
 from six import print_, string_types
 from toscaparser.common.exception import ValidationError
@@ -9,6 +8,7 @@ import ruamel.yaml
 
 from . import completer, helper, merger
 from .helper import CONST, Logger
+from .exceptions import TosKeriserException
 
 _log = None
 
@@ -24,11 +24,12 @@ def analyse_description(file_path, components=[], policy=None,
         _analyse_description(file_path, components, policy, constraints,
                              groups, interactive, force, df_host)
     except ValidationError as e:
-        print_('Validation error:{}'.format(e))
+        raise TosKeriserException('Validation error:{}'.format(e))
+    except TosKeriserException as e:
+        raise e
     except Exception as e:
-        _log.error('error type: {}, error: {}'.format(type(e), e))
+        print_('Internal error: {}'.format(e))
         _log.debug(traceback.format_exc())
-        print_('ERRORS:\n- {}'.format('\n- '.join(e.args)))
 
 
 def _analyse_description(file_path, components=[], policy=None,
@@ -103,7 +104,8 @@ def _check_components(tosca, components):
                     if c == n.name:
                         correct = True
                 if not correct:
-                    raise Exception('component "{}" not founded'.format(c))
+                    raise TosKeriserException(
+                        'component "{}" not founded'.format(c))
 
 
 def _update_tosca(file_path, new_path,
@@ -156,9 +158,8 @@ def _update_tosca(file_path, new_path,
                                          policy, constraints, interactive,
                                          df_host)
                 to_complete = True
-            except Exception as e:
-                errors.append(' '.join(e.args))
-                _log.debug(traceback.format_exc())
+            except TosKeriserException as e:
+                errors += e.mgs
 
     # remove the node that are already processed as part of a group
     for node in (n for n in tosca.nodetemplates
@@ -172,16 +173,15 @@ def _update_tosca(file_path, new_path,
                 completer.complete(node, nodes_yaml, tosca,
                                    policy, constraints,
                                    interactive, df_host)
-            except Exception as e:
-                errors.append(' '.join(e.args))
-                _log.debug(traceback.format_exc())
+            except TosKeriserException as e:
+                errors += e.stack
 
     if len(errors) == 0 and to_complete:
         _write_updates(tosca_yaml, new_path)
     elif len(errors) > 0:
-        raise Exception(*errors)
+        raise TosKeriserException(*errors)
     else:
-        raise Exception('no abstract node founded')
+        raise TosKeriserException('no abstract node founded')
 
 
 def _merge_groups(tosca_groups, cmd_groups):
@@ -245,4 +245,4 @@ def _validate_node_filter(tosca):
                 pass
 
     if len(errors) != 0:
-        raise Exception(*errors)
+        raise TosKeriserException(*errors)
