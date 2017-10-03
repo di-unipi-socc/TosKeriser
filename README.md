@@ -109,6 +109,56 @@ OPTIONS
   --policy=top_rated|size|most_used    ordering of the images
 ```
 
+
+## Deployment Details
+### Working schema
+```
+ui -> analyser -> merger
+               -> completer
+```
+
+###`ui`
+- parse input parameters
+- call `analyser`
+
+###`analyser`
+  - check input components
+  - validate node_filter
+  - merge topology groups with command-line groups
+  - for all groups
+    - call `merger` for merge constraints
+    - check if a group have to be updated
+    - call `completer`
+  - for all components not in groups
+    - check if a component have to be updated
+    - call `completer`
+
+###`completer`
+  - build query
+  - search for image on DockerFinder
+  - chose an image
+  - complete TOSCA specification
+
+###`merger`
+  - for all group member
+    - for all constraint
+      - merge constraint
+
+### Algorithms
+**Must_update**
+```
+input: component, components, force
+output: bool
+
+if (!is_software(component))
+  return false
+if (components.length != 0 and component not in components)
+  return false
+if (has_host_node(node) and (!force or !has_node_filter(node)))
+  return false
+return true
+```
+
 ## License
 
 MIT license
