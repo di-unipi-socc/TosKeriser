@@ -220,28 +220,34 @@ def _merge_groups(tosca_groups, cmd_groups):
 
 
 def _validate_node_filter(tosca):
-    # TODO: check if node_filter has list inside
     errors = []
     for node in tosca.nodetemplates:
         node_filter = helper.get_host_node_filter(node)
+        if not isinstance(node_filter, list):
+            errors.append('Node "{}": "node_filter" requires a list of '
+                          'properties'.format(node.name))
+            continue
         for n in node_filter:
             key, value = list(n.items())[0]
             if CONST.PROPERTY_OS == key:
                 if not isinstance(value, str):
-                    errors.append('On node "{}" property "{}" must be a string'
+                    errors.append('Node "{}": property "{}" must be a string'
                                   '.'.format(node.name, CONST.PROPERTY_OS))
             elif CONST.PROPERTY_SW == key:
-                if isinstance(value, list):
-                    for software in value:
-                        s, v = list(software.items())[0]
-                        match = re.match('^([0-9]+.)*([0-9]+|x)?$', str(v))
-                        if not isinstance(v, str) or match is None:
-                            errors.append(
-                                'On node "{}" software version "{}:{}" '
-                                'must be a string with this pattern '
-                                '([0-9].)*[0-9]+ or ([0-9].)*x '
-                                '(i.e. 1.2.2, 1.2.x).'
-                                ''.format(node.name, s, v))
+                if not isinstance(value, list):
+                    errors.append('Node "{}": "{}" must be a list of software'
+                                  ''.format(node.name, CONST.PROPERTY_SW))
+                    continue
+                for software in value:
+                    s, v = list(software.items())[0]
+                    match = re.match('^([0-9]+.)*([0-9]+|x)?$', str(v))
+                    if not isinstance(v, str) or match is None:
+                        errors.append(
+                            'Node "{}": software version "{}:{}" '
+                            'must be a string with this pattern '
+                            '([0-9].)*[0-9]+ or ([0-9].)*x '
+                            '(i.e. 1.2.2, 1.2.x).'
+                            ''.format(node.name, s, v))
             else:
                 # TODO: check if other property are container one
                 pass
