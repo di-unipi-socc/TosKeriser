@@ -17,6 +17,7 @@ topology_template:
       - host:
          node_filter:
            properties:
+# TODO: check that inside properties there are all lists of lists
            - supported_sw:
              - node: 6.2
              - ruby: asv
