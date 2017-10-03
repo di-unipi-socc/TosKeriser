@@ -1,8 +1,8 @@
 import yaml
-from .test_upper import Test_Upper
+from .test_upper import TestUpper
 
 
-class Test_All(Test_Upper):
+class TestExtraProp(TestUpper):
     @classmethod
     def setUpClass(self):
         self._file_path = 'data/examples/example_extra_prop.yaml'

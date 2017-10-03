@@ -1,15 +1,15 @@
 import yaml
-from .test_upper import Test_Upper
+from .test_upper import TestUpper
 
 from toskeriser.exceptions import TosKeriserException
 
 
-class Test_All(Test_Upper):
+class TestForceUpdate(TestUpper):
 
     @classmethod
     def setUpClass(self):
-        self._file_path = 'data/examples/force_update.yaml'
-        self._new_path = 'data/examples/force_update.completed.yaml'
+        self._file_path = 'data/examples/example_force_update.yaml'
+        self._new_path = 'data/examples/example_force_update.completed.yaml'
         self._mock_responces = {
             'node=6&ruby=2&distro=alpine': {
                 'count': 1,

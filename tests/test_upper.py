@@ -1,16 +1,19 @@
 import os
+import sys
 from unittest import TestCase
 
 import yaml
-from six import print_
-from toscaparser.tosca_template import ToscaTemplate
+from six import print_, StringIO
 
 import requests_mock
 from toskeriser.analyser import analyse_description
 # from toskeriser.helper import CONST
 
+from toskeriser import helper
+from toskeriser.helper import CONST
 
-class Test_Upper(TestCase):
+
+class TestUpper(TestCase):
     @classmethod
     def setUpClass(self):
         self._file_path = ''
@@ -31,31 +34,64 @@ class Test_Upper(TestCase):
     #         pass
 
     def start_test(self, force=False):
+        self._default_test(force)
+        self._policy_test(force)
+        self._constraints_test(force)
+
+    def _default_test(self, force=False):
+        _base_par = 'size_gt=0&sort=stars&sort=pulls&sort=-size'
+        self._test(_base_par, force=force)
+
+    def _policy_test(self, force=False):
+        def run(policy, q_policy):
+            get_par = 'size_gt=0&' + q_policy
+            self._test(get_par, policy=policy, force=force)
+
+        run(CONST.POLICY_TOP, 'sort=stars&sort=pulls&sort=-size')
+        run(CONST.POLICY_SIZE, 'sort=-size&sort=stars&sort=pulls')
+        run(CONST.POLICY_USED, 'sort=pulls&sort=stars&sort=-size')
+
+    def _constraints_test(self, force=False):
+        get_par = 'pulls_gt=20&stars_lte=100&size_lt=1000000000&'\
+                  'sort=stars&sort=pulls&sort=-size'
+
+        constraints = {'pulls': '>20', 'stars': '<=100', 'size': '<1GB'}
+        self._test(get_par, constraints=constraints, force=force)
+
+    def _test(self, base_par, policy=None, constraints={}, force=False):
         with requests_mock.mock() as m:
             # register mock requests
-            _base_par = 'size_gt=0&sort=stars&sort=pulls&sort=-size'
             for par, res in self._mock_responces.items():
-                m.get('http://df.io/search?{}&{}'.format(_base_par, par),
+                m.get('http://df.io/search?{}&{}'.format(base_par, par),
                       json=res, complete_qs=True)
 
             # start the completation
+            sys.stdout, old_stdout = StringIO(), sys.stdout
             analyse_description(
-                self._file_path, components=[], policy=None,
-                constraints={}, interactive=False, force=force,
+                self._file_path, components=[], policy=policy,
+                constraints=constraints, interactive=False, force=force,
                 df_host='http://df.io'
             )
+            sys.stdout = old_stdout
 
         # check the result
+        if self._new_path.endswith('.csar'):
+            _, self._new_path = helper.unpack_csar(self._new_path)
+
         self._check_TOSCA(self._new_path)
 
     def _check_TOSCA(self, new_path):
-        tosca = ToscaTemplate(new_path)
+        # tosca = ToscaTemplate(new_path)
+        with open(new_path) as tosca_file:
+            tosca = yaml.load(tosca_file)
+
         self.assertIsNotNone(tosca)
-        for node in tosca.nodetemplates:
-            self.assertIn(node.name, self._node_templates)
+
+        for name, node in tosca['topology_template']['node_templates'].items():
+            self.assertIn(name, self._node_templates)
             self.assertTrue(
-                self._check_yaml(self._node_templates[node.name],
-                                 node.entity_tpl))
+                self._check_yaml(self._node_templates[name],
+                                 node))
 
     def _check_yaml(self, a, b):
         def track(value):

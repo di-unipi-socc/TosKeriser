@@ -220,6 +220,7 @@ def _merge_groups(tosca_groups, cmd_groups):
 
 
 def _validate_node_filter(tosca):
+    # TODO: check if node_filter has list inside
     errors = []
     for node in tosca.nodetemplates:
         node_filter = helper.get_host_node_filter(node)
