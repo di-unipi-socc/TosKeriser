@@ -1,12 +1,15 @@
 import yaml
+
 from .test_upper import TestUpper
 
 
 class TestGroupExtraProp(TestUpper):
+
     @classmethod
     def setUpClass(self):
         self._file_path = 'data/examples/example_group_extra_prop.yaml'
-        self._new_path = 'data/examples/example_group_extra_prop.completed.yaml'
+        self._new_path = 'data/examples/example_group_extra_prop'\
+                         '.completed.yaml'
         self._mock_responces = {
             'node=6&npm=3&wget=&java=1.7&tar=&distro=debian': {
                 'count': 1,

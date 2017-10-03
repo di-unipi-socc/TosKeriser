@@ -1,7 +1,8 @@
 import yaml
-from .test_upper import TestUpper
 
 from toskeriser.exceptions import TosKeriserException
+
+from .test_upper import TestUpper
 
 
 class TestNoUpdate(TestUpper):
@@ -14,7 +15,9 @@ class TestNoUpdate(TestUpper):
         self._node_templates = yaml.load('')
 
     def test_all(self):
+        # TODO: check the specific error
         with self.assertRaises(TosKeriserException):
             self.start_test()
+        # TODO: check the specific error
         with self.assertRaises(TosKeriserException):
             self.start_test(force=True)

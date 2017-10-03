@@ -1,8 +1,10 @@
 import yaml
+
 from .test_upper import TestUpper
 
 
 class TestOnlySw(TestUpper):
+
     @classmethod
     def setUpClass(self):
         self._file_path = 'data/examples/example_only_sw.yaml'
@@ -14,17 +16,17 @@ class TestOnlySw(TestUpper):
                     {
                         'name': 'jekyll/jekyll:builder',
                         'softwares': [
-                          {'software': 'ruby', 'ver': '2.3.3'},
-                          {'software': 'httpd', 'ver': '1.25.1'},
-                          {'software': 'npm', 'ver': '3.10.10'},
-                          {'software': 'node', 'ver': '6.9.5'},
-                          {'software': 'wget', 'ver': '1.25.1'},
-                          {'software': 'ash', 'ver': '1.25.1'},
-                          {'software': 'git', 'ver': '2.11.2'},
-                          {'software': 'bash', 'ver': '4.3.46'},
-                          {'software': 'erl', 'ver': '2'},
-                          {'software': 'unzip', 'ver': '1.25.1'},
-                          {'software': 'tar', 'ver': '1.25.1'},
+                            {'software': 'ruby', 'ver': '2.3.3'},
+                            {'software': 'httpd', 'ver': '1.25.1'},
+                            {'software': 'npm', 'ver': '3.10.10'},
+                            {'software': 'node', 'ver': '6.9.5'},
+                            {'software': 'wget', 'ver': '1.25.1'},
+                            {'software': 'ash', 'ver': '1.25.1'},
+                            {'software': 'git', 'ver': '2.11.2'},
+                            {'software': 'bash', 'ver': '4.3.46'},
+                            {'software': 'erl', 'ver': '2'},
+                            {'software': 'unzip', 'ver': '1.25.1'},
+                            {'software': 'tar', 'ver': '1.25.1'},
                         ],
                         'distro': '',
                         'size': 20000000,

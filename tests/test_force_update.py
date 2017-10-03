@@ -1,7 +1,8 @@
 import yaml
-from .test_upper import TestUpper
 
 from toskeriser.exceptions import TosKeriserException
+
+from .test_upper import TestUpper
 
 
 class TestForceUpdate(TestUpper):

@@ -1,7 +1,5 @@
-import traceback
-
-from .helper import Logger, CONST
 from .exceptions import TosKeriserException
+from .helper import CONST, Logger
 
 _log = None
 

@@ -2,18 +2,17 @@ import os
 import sys
 from unittest import TestCase
 
-import yaml
-from six import print_, StringIO
-
 import requests_mock
-from toskeriser.analyser import analyse_description
-# from toskeriser.helper import CONST
+import yaml
+from six import StringIO, print_
 
 from toskeriser import helper
+from toskeriser.analyser import analyse_description
 from toskeriser.helper import CONST
 
 
 class TestUpper(TestCase):
+
     @classmethod
     def setUpClass(self):
         self._file_path = ''

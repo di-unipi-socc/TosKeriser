@@ -1,14 +1,14 @@
-import traceback
 import re
+import traceback
 
+import ruamel.yaml
 from six import print_, string_types
 from toscaparser.common.exception import ValidationError
 from toscaparser.tosca_template import ToscaTemplate
-import ruamel.yaml
 
 from . import completer, helper, merger
-from .helper import CONST, Logger
 from .exceptions import TosKeriserException
+from .helper import CONST, Logger
 
 _log = None
 

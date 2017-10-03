@@ -1,8 +1,10 @@
 import yaml
+
 from .test_upper import TestUpper
 
 
 class TestOnlyOs(TestUpper):
+
     @classmethod
     def setUpClass(self):
         self._file_path = 'data/examples/example_only_os.yaml'

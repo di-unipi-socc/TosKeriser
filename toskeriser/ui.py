@@ -2,16 +2,15 @@ import logging
 import os
 import re
 import sys
+from copy import copy
 from os import path
 from sys import argv
-from copy import copy
 
 from six import StringIO, print_
 
 from . import __version__, analyser
-from .helper import CONST, Logger
 from .exceptions import TosKeriserException
-
+from .helper import CONST, Logger
 
 _USAGE = '''TosKeriser, a tool to complete TosKer application description with
 suitable Docker Images.
