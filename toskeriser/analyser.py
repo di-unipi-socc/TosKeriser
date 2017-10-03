@@ -33,8 +33,9 @@ def analyse_description(file_path, components=[], policy=None,
 
 
 def _analyse_description(file_path, components=[], policy=None,
-                         constraints={}, groups=[], interactive=False,
-                         force=False, df_host=CONST.DF_HOST):
+                         constraints={}, groups=[],
+                         interactive=False, force=False,
+                         df_host=CONST.DF_HOST):
     global _log
     _log = Logger.get(__name__)
 

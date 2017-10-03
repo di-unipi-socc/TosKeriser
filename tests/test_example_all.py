@@ -61,17 +61,5 @@ server_container:
       repository: docker_hub
 ''')
 
-    def setUp(self):
-        try:
-            os.remove(self._new_path)
-        except OSError:
-            pass
-
-    def tearDown(self):
-        try:
-            os.remove(self._new_path)
-        except OSError:
-            pass
-
     def test_all(self):
         self.start_test()

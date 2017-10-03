@@ -1,11 +1,8 @@
-import os
-
 import yaml
 from .test_upper import Test_Upper
 
 
 class Test_All(Test_Upper):
-
     @classmethod
     def setUpClass(self):
         self._file_path = 'data/examples/example_group.yaml'
@@ -73,18 +70,6 @@ my_group_container:
       file: jekyll/jekyll:3.1.6
       type: tosker.artifacts.Image
       repository: docker_hub''')
-
-    def setUp(self):
-        try:
-            os.remove(self._new_path)
-        except OSError:
-            pass
-
-    def tearDown(self):
-        try:
-            os.remove(self._new_path)
-        except OSError:
-            pass
 
     def test_all(self):
         self.start_test()

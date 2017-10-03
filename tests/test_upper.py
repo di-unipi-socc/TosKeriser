@@ -6,7 +6,7 @@ from six import print_
 from toscaparser.tosca_template import ToscaTemplate
 
 import requests_mock
-from toskeriser.analyser import _analyse_description as analyse
+from toskeriser.analyser import analyse_description
 # from toskeriser.helper import CONST
 
 
@@ -24,33 +24,35 @@ class Test_Upper(TestCase):
         except OSError:
             pass
 
-    def tearDown(self):
-        try:
-            os.remove(self._new_path)
-        except OSError:
-            pass
+    # def tearDown(self):
+    #     try:
+    #         os.remove(self._new_path)
+    #     except OSError:
+    #         pass
 
-    def start_test(self):
-        _base_par = 'size_gt=0&sort=stars&sort=pulls&sort=-size'
-
-        with requests_mock.Mocker() as m:
+    def start_test(self, force=False):
+        with requests_mock.mock() as m:
+            # register mock requests
+            _base_par = 'size_gt=0&sort=stars&sort=pulls&sort=-size'
             for par, res in self._mock_responces.items():
                 m.get('http://df.io/search?{}&{}'.format(_base_par, par),
-                      json=res)
-            analyse(self._file_path, components=[], policy=None,
-                    constraints={}, interactive=False, force=False,
-                    df_host='http://df.io')
+                      json=res, complete_qs=True)
 
+            # start the completation
+            analyse_description(
+                self._file_path, components=[], policy=None,
+                constraints={}, interactive=False, force=force,
+                df_host='http://df.io'
+            )
+
+        # check the result
         self._check_TOSCA(self._new_path)
 
     def _check_TOSCA(self, new_path):
         tosca = ToscaTemplate(new_path)
         self.assertIsNotNone(tosca)
-
         for node in tosca.nodetemplates:
             self.assertIn(node.name, self._node_templates)
-            # print_('DEBUG: check yaml\n{}\n{}'.format(
-            #        self._node_templates[node.name], node.entity_tpl))
             self.assertTrue(
                 self._check_yaml(self._node_templates[node.name],
                                  node.entity_tpl))

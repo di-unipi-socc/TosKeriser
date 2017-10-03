@@ -282,13 +282,15 @@ def _build_container_node(image, node_filter):
     new_prop = node_filter_to_property(node_filter)\
         if node_filter is not None else {}
 
-    def format_software(image):
-        return {s['software']: s['ver'] for s in image['softwares']}
+    def format_software(softwares):
+        return {s['software']: s['ver'] for s in softwares}
 
-    properties = {
-        CONST.PROPERTY_SW: format_software(image),
-        CONST.PROPERTY_OS: image['distro']
-    }
+    properties = {}
+    if 'softwares' in image and len(image['softwares']) > 0:
+        properties[CONST.PROPERTY_SW] = format_software(image['softwares'])
+    if 'distro' in image and image['distro']:
+        properties[CONST.PROPERTY_OS] = image['distro']
+
     properties.update(new_prop)
 
     return {
