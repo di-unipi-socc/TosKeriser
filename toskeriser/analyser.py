@@ -2,7 +2,7 @@ import re
 import traceback
 
 import ruamel.yaml
-from six import print_, string_types
+from six import print_
 from toscaparser.common.exception import ValidationError
 from toscaparser.tosca_template import ToscaTemplate
 
@@ -53,10 +53,7 @@ def _update_tosca(file_path, new_path,
                   interactive=False, force=False, df_host=CONST.DF_HOST):
     # TODO: split this method
     _log.debug('update TOSCA YAML file {} to {}'.format(file_path, new_path))
-    try:
-        tosca = ToscaTemplate(file_path)
-    except Exception as e:
-        _log.error(e)
+    tosca = ToscaTemplate(file_path)
 
     _validate_node_filter(tosca)
 
@@ -80,16 +77,24 @@ def _update_tosca(file_path, new_path,
             self.name = name
             self.members = members
 
-    nodes_yaml = tosca_yaml['topology_template']['node_templates']
-    for name, members in new_groups.items():
-        group = Group(name,
-                      [helper.get_node_from_tpl(tosca, m) for m in members])
-        properties = []
-        if any((_must_update(n, force, components) for n in group.members)):
-            for m in group.members:
-                already_analysed.append(m.name)
-                properties.append(helper.get_host_node_filter(m))
+    groups = [Group(name,
+                    [helper.get_node_from_tpl(tosca, m) for m in members])
+              for name, members in new_groups.items()]
 
+    _validate_groups(tosca, groups)
+
+    nodes_yaml = tosca_yaml['topology_template']['node_templates']
+    for group in groups:
+        properties = []
+
+        group_to_complete = False
+        for m in group.members:
+            m.to_update = _must_update(m, force, components)
+            group_to_complete = m.to_update
+            already_analysed.append(m.name)
+            properties.append(helper.get_host_nodefilter(m))
+
+        if group_to_complete:
             _log.debug('properties {}'.format(properties))
             merged_properties = merger.merge(properties)
             _log.debug('merged properties {}'.format(merged_properties))
@@ -126,6 +131,49 @@ def _update_tosca(file_path, new_path,
         raise TosKeriserException('no abstract node founded')
 
 
+def _validate_groups(tosca, groups):
+    def is_in_members(node, members):
+        from toscaparser.nodetemplate import NodeTemplate
+        if isinstance(node, NodeTemplate):
+            node = node.name
+        return any((node == m.name for m in members))
+
+    errors = []
+    for group in groups:
+        for node in group.members:
+            # check if all memeber of the group are software
+            if node.type != CONST.SOFTWARE_TYPE:
+                errors.append(
+                    'Group "{}" has a member, "{}", that is not a software '
+                    'component'.format(group.name, node.name))
+
+            # check the member of the group do not require host to nodes
+            # outside the group
+            host_node = helper.get_host_node(node)
+            if host_node is not None and\
+               not is_in_members(host_node, group.members):
+                errors.append(
+                    'Node "{}",  member of the group "{}", requires a host to '
+                    'a no member component, "{}"'
+                    ''.format(node.name, group.name, host_node))
+
+        # check if other node require host to members of this group
+        for node in tosca.nodetemplates:
+            # if node is not member of the group
+            if all((node.name != m.name for m in group.members)):
+                host_node = helper.get_host_node(node)
+
+                # if the node require to be hosted to a member of the group
+                if host_node is not None and\
+                   is_in_members(host_node, group.members):
+                    errors.append(
+                        'Node "{}" requires a host to a node member of '
+                        'another group "{}"'
+                        ''.format(node.name, group.name))
+    if len(errors) > 0:
+        raise TosKeriserException(*errors)
+
+
 def _check_components(tosca, components):
     if hasattr(tosca, 'nodetemplates'):
         if tosca.nodetemplates:
@@ -142,7 +190,7 @@ def _check_components(tosca, components):
 def _validate_node_filter(tosca):
     errors = []
     for node in tosca.nodetemplates:
-        node_filter = helper.get_host_node_filter(node)
+        node_filter = helper.get_host_nodefilter(node)
         if not isinstance(node_filter, list):
             errors.append('Node "{}": "node_filter" requires a list of '
                           'properties'.format(node.name))
@@ -216,19 +264,13 @@ def _must_update(node, force, components):
         return True if node.type == CONST.SOFTWARE_TYPE else False
 
     def has_requirement_key(node, key):
-        requirement = helper.get_host_requirements(node)
-        if requirement is not None and isinstance(requirement, dict):
-            if key in requirement and\
-               requirement[key] is not None:
-                return True
-        return False
+        return helper.get_host_key(node, key) is not None
 
     def has_nodefilter(node):
         return has_requirement_key(node, 'node_filter')
 
     def has_node(node):
-        return has_requirement_key(node, 'node') or\
-            isinstance(helper.get_host_requirements(node), string_types)
+        return helper.get_host_node(node) is not None
 
     if is_software(node) and\
        (len(components) == 0 or node.name in components) and\

@@ -17,7 +17,7 @@ def complete(node, nodes_yaml, tosca,
     global _log
     _log = Logger.get(__name__)
 
-    properties = helper.get_host_node_filter(node)
+    properties = helper.get_host_nodefilter(node)
     _log.debug('properties: {}'.format(properties))
 
     count, images = _get_images(properties, policy, constraints, df_host)
@@ -246,7 +246,7 @@ def _choose_image(images, interactive=False):
 def _update_yaml(node, nodes_yaml, image):
     # update host requirement of all node of the group
     container_name = '{}_container'.format(node.name)
-    req_node_yaml = helper.get_host_requirements(nodes_yaml[node.name])
+    req_node_yaml = helper.get_host(nodes_yaml[node.name])
     req_node_yaml['node'] = container_name
 
     # add container node to the template
@@ -260,8 +260,8 @@ def _update_yaml(node, nodes_yaml, image):
 def _update_group_yaml(group, node_filter, nodes_yaml, image):
     # update host requirement of all node of the group
     container_name = '{}_container'.format(group.name)
-    for m in group.members:
-        req_node_yaml = helper.get_host_requirements(nodes_yaml[m.name])
+    for m in (m for m in group.members if m.to_update):
+        req_node_yaml = helper.get_host(nodes_yaml[m.name])
         req_node_yaml['node'] = container_name
 
     # add container node to the template

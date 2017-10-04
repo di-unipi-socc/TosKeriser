@@ -3,6 +3,7 @@ import os
 import zipfile
 from os import path
 
+from six import string_types
 from toscaparser.prereq.csar import CSAR
 
 
@@ -77,7 +78,7 @@ def pack_csar(csar_tmp_path, new_path):
                                       path.join(csar_tmp_path, '.')))
 
 
-def get_host_requirements(node):
+def get_host(node):
     if hasattr(node, 'entity_tpl'):
         node = node.entity_tpl
     if 'requirements' in node:
@@ -90,9 +91,23 @@ def get_host_requirements(node):
     return None
 
 
-def get_host_node_filter(node):
-    requirement = get_host_requirements(node)
+def get_host_key(node, key):
+    requirement = get_host(node)
+    if requirement is not None and isinstance(requirement, dict):
+        if key in requirement:
+            return requirement[key]
+    return None
 
+
+def get_host_node(node):
+    requirement = get_host(node)
+    if isinstance(requirement, string_types):
+        return requirement
+    return get_host_key(node, 'node')
+
+
+def get_host_nodefilter(node):
+    requirement = get_host(node)
     try:
         properties = requirement['node_filter']['properties'] or []
     except (TypeError,  KeyError):
