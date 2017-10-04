@@ -32,13 +32,6 @@ def merge(nodes_property):
     return p_list
 
 
-def _convert_to_list(properties):
-    if isinstance(properties, dict):
-        return [{k: _convert_to_list(v)} for k, v in properties.items()]
-    else:
-        return properties
-
-
 def _add_property(merged_p, new_p, f_merge=lambda x, y: x if x == y else None):
     '''
     Add a property to a dictionary of properties executing the f_merge to
@@ -112,3 +105,10 @@ def _merge_version(v1, v2):
         return None
     else:
         return '.'.join(merged_version)
+
+
+def _convert_to_list(properties):
+    if isinstance(properties, dict):
+        return [{k: _convert_to_list(v)} for k, v in properties.items()]
+    else:
+        return properties

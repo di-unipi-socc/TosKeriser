@@ -20,9 +20,20 @@ def analyse_description(file_path, components=[], policy=None,
     global _log
     _log = Logger.get(__name__)
 
+    new_path = _gen_new_path(file_path, 'completed')
     try:
-        _analyse_description(file_path, components, policy, constraints,
-                             groups, interactive, force, df_host)
+        if file_path.endswith(('.zip', '.csar', '.CSAR')):
+            _log.debug('CSAR founded')
+            csar_tmp_path, yaml_path = helper.unpack_csar(file_path)
+            _update_tosca(yaml_path, yaml_path,
+                          components, policy, constraints, groups,
+                          interactive, force, df_host)
+            helper.pack_csar(csar_tmp_path, new_path)
+        else:
+            _log.debug('YAML founded')
+            _update_tosca(file_path, new_path,
+                          components, policy, constraints, groups,
+                          interactive, force, df_host)
     except ValidationError as e:
         raise TosKeriserException('Validation error:{}'.format(e))
     except TosKeriserException as e:
@@ -32,81 +43,9 @@ def analyse_description(file_path, components=[], policy=None,
         _log.debug(traceback.format_exc())
 
 
-def _analyse_description(file_path, components=[], policy=None,
-                         constraints={}, groups=[],
-                         interactive=False, force=False,
-                         df_host=CONST.DF_HOST):
-    global _log
-    _log = Logger.get(__name__)
-
-    new_path = _gen_new_path(file_path, 'completed')
-
-    if file_path.endswith(('.zip', '.csar', '.CSAR')):
-        _log.debug('CSAR founded')
-        csar_tmp_path, yaml_path = helper.unpack_csar(file_path)
-        _update_tosca(yaml_path, yaml_path,
-                      components, policy, constraints, groups,
-                      interactive, force, df_host)
-        helper.pack_csar(csar_tmp_path, new_path)
-    else:
-        _log.debug('YAML founded')
-        _update_tosca(file_path, new_path,
-                      components, policy, constraints, groups,
-                      interactive, force, df_host)
-
-
-def _must_update(node, force, components):
-    def is_software(node):
-        return True if node.type == CONST.SOFTWARE_TYPE else False
-
-    def has_requirement_key(node, key):
-        requirement = helper.get_host_requirements(node)
-        if requirement is not None and isinstance(requirement, dict):
-            if key in requirement and\
-               requirement[key] is not None:
-                return True
-        return False
-
-    def has_nodefilter(node):
-        return has_requirement_key(node, 'node_filter')
-
-    def has_node(node):
-        return has_requirement_key(node, 'node') or\
-            isinstance(helper.get_host_requirements(node), string_types)
-
-    if is_software(node) and\
-       (len(components) == 0 or node.name in components) and\
-       (not has_node(node) or (force and has_nodefilter(node))):
-        return True
-    return False
-
-
-def _write_updates(tosca, new_path):
-    with open(new_path, "w") as f:
-        ruamel.yaml.round_trip_dump(tosca, f,
-                                    # width=80,
-                                    # indent=2,
-                                    # block_seq_indent=2,
-                                    # top_level_colon_align=True
-                                    )
-
-
 def _gen_new_path(file_path, mod):
     points = file_path.split('.')
     return '{}.{}.{}'.format('.'.join(points[:-1]), mod, points[-1])
-
-
-def _check_components(tosca, components):
-    if hasattr(tosca, 'nodetemplates'):
-        if tosca.nodetemplates:
-            for c in components:
-                correct = False
-                for n in tosca.nodetemplates:
-                    if c == n.name:
-                        correct = True
-                if not correct:
-                    raise TosKeriserException(
-                        'component "{}" not founded'.format(c))
 
 
 def _update_tosca(file_path, new_path,
@@ -123,8 +62,9 @@ def _update_tosca(file_path, new_path,
 
     _check_components(tosca, components)
 
-    tosca_yaml = ruamel.yaml.round_trip_load(open(file_path),
-                                             preserve_quotes=True)
+    with open(file_path, 'r') as f:
+        tosca_yaml = ruamel.yaml.round_trip_load(f, preserve_quotes=True)
+
     errors = []
     to_complete = False
 
@@ -185,38 +125,17 @@ def _update_tosca(file_path, new_path,
         raise TosKeriserException('no abstract node founded')
 
 
-def _merge_groups(tosca_groups, cmd_groups):
-    groups = {g.name: g.members for g in tosca_groups}
-    groups.update(
-        {'-'.join(members): members for members in cmd_groups}
-    )
-    _log.debug('groups before merge {}'.format(groups))
-    keep = {name: True for name in groups.keys()}
-
-    def merge(g1, g2):
-        groups[g1] = list(set(groups[g1] + groups[g2]))
-        groups[g2] = groups[g1]
-        keep[g1] = True
-        keep[g2] = False
-        return g1
-
-    for group in cmd_groups:
-        to_merge = '-'.join(group)
-        for member in group:
-            groups_set = set([k for k in groups.keys()
-                              if k != to_merge and keep[k]])
-            while len(groups_set) > 0:
-                name = groups_set.pop()
-                members = groups[name]
-                if member in members and to_merge != name:
-                    if to_merge in groups_set:
-                        groups_set.remove(to_merge)
-                    to_merge = merge(name, to_merge)
-                    _log.debug('merge {} with {}'.format(to_merge, name))
-                    groups_set.add(to_merge)
-
-    # _log.debug('keep {}'.format(keep))
-    return {k: v for k, v in groups.items() if keep[k]}
+def _check_components(tosca, components):
+    if hasattr(tosca, 'nodetemplates'):
+        if tosca.nodetemplates:
+            for c in components:
+                correct = False
+                for n in tosca.nodetemplates:
+                    if c == n.name:
+                        correct = True
+                if not correct:
+                    raise TosKeriserException(
+                        'component "{}" not founded'.format(c))
 
 
 def _validate_node_filter(tosca):
@@ -254,3 +173,73 @@ def _validate_node_filter(tosca):
 
     if len(errors) != 0:
         raise TosKeriserException(*errors)
+
+
+def _merge_groups(tosca_groups, cmd_groups):
+    groups = {g.name: g.members for g in tosca_groups}
+    groups.update(
+        {'-'.join(members): members for members in cmd_groups}
+    )
+    _log.debug('groups before merge {}'.format(groups))
+    keep = {name: True for name in groups.keys()}
+
+    def merge(g1, g2):
+        groups[g1] = list(set(groups[g1] + groups[g2]))
+        groups[g2] = groups[g1]
+        keep[g1] = True
+        keep[g2] = False
+        return g1
+
+    for group in cmd_groups:
+        to_merge = '-'.join(group)
+        for member in group:
+            groups_set = set([k for k in groups.keys()
+                              if k != to_merge and keep[k]])
+            while len(groups_set) > 0:
+                name = groups_set.pop()
+                members = groups[name]
+                if member in members and to_merge != name:
+                    if to_merge in groups_set:
+                        groups_set.remove(to_merge)
+                    to_merge = merge(name, to_merge)
+                    _log.debug('merge {} with {}'.format(to_merge, name))
+                    groups_set.add(to_merge)
+
+    # _log.debug('keep {}'.format(keep))
+    return {k: v for k, v in groups.items() if keep[k]}
+
+
+def _must_update(node, force, components):
+    def is_software(node):
+        return True if node.type == CONST.SOFTWARE_TYPE else False
+
+    def has_requirement_key(node, key):
+        requirement = helper.get_host_requirements(node)
+        if requirement is not None and isinstance(requirement, dict):
+            if key in requirement and\
+               requirement[key] is not None:
+                return True
+        return False
+
+    def has_nodefilter(node):
+        return has_requirement_key(node, 'node_filter')
+
+    def has_node(node):
+        return has_requirement_key(node, 'node') or\
+            isinstance(helper.get_host_requirements(node), string_types)
+
+    if is_software(node) and\
+       (len(components) == 0 or node.name in components) and\
+       (not has_node(node) or (force and has_nodefilter(node))):
+        return True
+    return False
+
+
+def _write_updates(tosca, new_path):
+    with open(new_path, 'w') as f:
+        ruamel.yaml.round_trip_dump(tosca, f,
+                                    # width=80,
+                                    # indent=2,
+                                    # block_seq_indent=2,
+                                    # top_level_colon_align=True
+                                    )
