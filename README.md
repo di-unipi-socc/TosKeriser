@@ -116,12 +116,12 @@ OPTIONS
 ui -> analyser -> merger
                -> completer
 ```
-
-###`ui`
+### Modules
+#### ui
 - parse input parameters
 - call `analyser`
 
-###`analyser`
+#### analyser
   - check input components
   - validate node_filter
   - merge topology groups with command-line groups
@@ -132,31 +132,108 @@ ui -> analyser -> merger
   - for all components not in groups
     - check if a component have to be updated
     - call `completer`
+  - create the complete file
 
-###`completer`
+#### completer
   - build query
   - search for image on DockerFinder
   - chose an image
   - complete TOSCA specification
 
-###`merger`
-  - for all group member
-    - for all constraint
+#### merger
+  - for all constraint
       - merge constraint
 
 ### Algorithms
-**Must_update**
+**Must update**
 ```
-input: component, components, force
-output: bool
+input: component:string, components:array, force:boolean
+output: boolean
 
 if (!is_software(component))
   return false
-if (components.length != 0 and component not in components)
+if (components.length ≠ 0 and component not in components)
   return false
 if (has_host_node(node) and (!force or !has_node_filter(node)))
   return false
 return true
+```
+
+**Merge groups**
+
+constrains: tosca_groups and cmd_groups must be disjoint
+```
+input: tosca_groups:array, cmd_groups:array
+output: array
+
+groups:array ← tosca_groups ∪ cmd_groups;
+
+∀ cmd_group ∈ cmd_groups {
+  to_merge:array ← cmd_group;
+  ∀ tosca_group ∈ tosca_groups {
+    ∀ member ∈ cmd_group{
+      if member ∈ tosca_group{
+        merge(tosca_group, to_merge);
+        break;
+      }
+    }
+  }
+}
+
+return groups;
+```
+
+**Merge constraints**
+```
+input: nodes_constraints:array
+output: hashmap
+
+merged_constraints ← hashmap();
+
+∀ constraints ∈ nodes_constraints {
+  ∀ constraint ∈ constraints {
+    if constraint is 'supported_sw'{
+      ∀ software in constraint {
+        if software ∈ merged_constraints
+          merge_software(software, merged_constraints[software]);
+        else
+          add(software, merged_constraints);
+      }
+    } else {
+      if constraints ∉ merged_constraints
+        add(constraints, merged_constraints);
+    }
+  }
+}
+
+return merged_properties;
+```
+
+**Merge software**
+```
+input: version1:array, version2:array
+output: array
+
+i ← 0;
+min_length ← min(length(version1), length(version2));
+merged_version ← array();
+
+while i < min_length ∧ v1[i] ≠ 'x' ∧ v2[i] ≠ 'x' {
+  if v1[i] = v2[i]
+    push(v1[i], merged_version);
+  else
+    return Nil;
+  i ← i + 1;
+}
+
+if i < length(v1) ∧ v1[i] = 'x'
+  return merged_version ∪ v2[i:];
+else if i < length(v2) ∧ v2[i] = 'x'
+  return merged_version ∪ v1[i:]
+else if length(v1) ≠ length(v2)
+  return Nil;
+else
+  return merged_version;
 ```
 
 ## License

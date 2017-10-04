@@ -62,6 +62,7 @@ def _update_tosca(file_path, new_path,
 
     _check_components(tosca, components)
 
+    # TODO: check that both the tosca_groups and the cmd_groups are not overlapping with themselves
     with open(file_path, 'r') as f:
         tosca_yaml = ruamel.yaml.round_trip_load(f, preserve_quotes=True)
 
@@ -176,6 +177,7 @@ def _validate_node_filter(tosca):
 
 
 def _merge_groups(tosca_groups, cmd_groups):
+    # TODO: implement using the new algorith
     groups = {g.name: g.members for g in tosca_groups}
     groups.update(
         {'-'.join(members): members for members in cmd_groups}
