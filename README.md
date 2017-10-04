@@ -150,13 +150,13 @@ ui -> analyser -> merger
 input: component:string, components:array, force:boolean
 output: boolean
 
-if (!is_software(component))
+if ¬is_software(component)
+  return false;
+if length(components) ≠ 0 ∧ component ∉ components
+  return false;
+if has_host_node(node) ∧ (¬force or ¬has_node_filter(node))
   return false
-if (components.length ≠ 0 and component not in components)
-  return false
-if (has_host_node(node) and (!force or !has_node_filter(node)))
-  return false
-return true
+return true;
 ```
 
 **Merge groups**
