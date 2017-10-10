@@ -6,58 +6,45 @@ from six import print_
 
 from . import helper
 from .exceptions import TosKeriserException
-from .helper import CONST, Logger
+from .helper import CONST, Logger, Group
 
 _log = None
 
 
-def complete(node, nodes_yaml, tosca,
+def complete(component, nodes_yaml, tosca,
              policy=None, constraints=None, interactive=False,
              df_host=CONST.DF_HOST):
     global _log
     _log = Logger.get(__name__)
 
-    properties = helper.get_host_nodefilter(node)
+    properties = component.constraints
     _log.debug('properties: {}'.format(properties))
 
     count, images = _get_images(properties, policy, constraints, df_host)
 
     if count == 0:
         raise TosKeriserException(
-            'no image found for container "{}"'.format(node.name))
+            'no image found for container "{}"'.format(component.name))
 
-    print_('founded {:0} images for "{.name}" component'.format(count, node))
-
-    image = _choose_image(images, interactive)
-
-    _update_yaml(node, nodes_yaml, image)
-
-    print_('complete node "{}" with image "{}" ({:.2f} MB, {} pulls, {} stars)'
-           ''.format(node.name, image['name'],
-                     image['size'] / 1000000, image['pulls'], image['stars']))
-
-
-def complete_group(group, properties, nodes_yaml,
-                   policy=None, constraints=None, interactive=False,
-                   df_host=CONST.DF_HOST):
-
-    count, images = _get_images(properties, policy, constraints, df_host)
-
-    if count == 0:
-        raise TosKeriserException(
-            'no image found for group "{}"'.format(group.name))
-
-    print_('founded {} images for group "{}" component'
-           ''.format(count, group.name))
+    print_('founded {:0} images for "{.name}" component'
+           ''.format(count, component))
 
     image = _choose_image(images, interactive)
 
-    _update_group_yaml(group, properties, nodes_yaml, image)
-
-    print_('complete group "{}" with image "{}" '
-           '({:.2f} MB, {} pulls, {} stars)'
-           ''.format(group.name, image['name'], image['size'] / 1000000,
-                     image['pulls'], image['stars']))
+    if isinstance(component, Group):
+        _update_group_yaml(component, nodes_yaml, image)
+        print_('complete group "{}" with image "{}" '
+               '({:.2f} MB, {} pulls, {} stars)'
+               ''.format(component.name, image['name'],
+                         image['size'] / 1000000, image['pulls'],
+                         image['stars']))
+    else:
+        _update_yaml(component, nodes_yaml, image)
+        print_('complete node "{}" with image "{}" '
+               '({:.2f} MB, {} pulls, {} stars)'
+               ''.format(component.name, image['name'],
+                         image['size'] / 1000000, image['pulls'],
+                         image['stars']))
 
 
 def _get_images(properties,
@@ -101,9 +88,9 @@ def _build_query(properties, policy=None, constraints={}):
 
     def parse_version(s):
         s = parse_functions(str(s))
-        match = re.match('^([0-9]+.)*([0-9]+|x)?$', s)
+        match = re.match('^([0-9]+.)*([0-9]+|x)$', s)
         if match is not None:
-            version = re.match('[0-9]+(\\.[0-9]+)*', s)
+            version = re.match('[0-9]+(.[0-9]+)*', s)
             return version.group(0) if version is not None else ''
         else:
             raise TosKeriserException(
@@ -257,14 +244,15 @@ def _update_yaml(node, nodes_yaml, image):
     nodes_yaml[container_name] = _build_container_node(image, prop)
 
 
-def _update_group_yaml(group, node_filter, nodes_yaml, image):
+def _update_group_yaml(component, nodes_yaml, image):
     # update host requirement of all node of the group
-    container_name = '{}_container'.format(group.name)
-    for m in (m for m in group.members if m.to_update):
+    container_name = '{}_container'.format(component.name)
+    for m in (m for m in component.members if m.to_update):
         req_node_yaml = helper.get_host(nodes_yaml[m.name])
         req_node_yaml['node'] = container_name
 
     # add container node to the template
+    node_filter = component.constraints
     nodes_yaml[container_name] = _build_container_node(image, node_filter)
 
 

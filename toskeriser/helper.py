@@ -51,6 +51,12 @@ class Logger:
         return log
 
 
+class Group:
+    def __init__(self, name, members):
+        self.name = name
+        self.members = members
+
+
 def unpack_csar(file_path):
     # Work around bug validation csar of toscaparser
     csar = CSAR(file_path)

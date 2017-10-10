@@ -7,7 +7,7 @@ import yaml
 from six import StringIO, print_
 
 from toskeriser import helper
-from toskeriser.analyser import analyse_description
+from toskeriser.toskeriser import toskerise
 from toskeriser.helper import CONST
 
 
@@ -66,7 +66,7 @@ class TestUpper(TestCase):
 
             # start the completation
             sys.stdout, old_stdout = StringIO(), sys.stdout
-            analyse_description(
+            toskerise(
                 self._file_path, components=[], policy=policy,
                 constraints=constraints, interactive=False, force=force,
                 df_host='http://df.io'

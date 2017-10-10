@@ -4,7 +4,7 @@ from .helper import CONST, Logger
 _log = None
 
 
-def merge(nodes_property):
+def merge_constraint(nodes_property):
     global _log
     _log = Logger.get(__name__)
 
@@ -30,6 +30,41 @@ def merge(nodes_property):
     p_list = _convert_to_list(merged_properties)
     _log.debug(p_list)
     return p_list
+
+
+def merge_groups(tosca_groups, cmd_groups):
+    global _log
+    _log = Logger.get(__name__)
+    # TODO: implement using the new algorith
+    all_groups = tosca_groups + cmd_groups
+    groups = {g.name: g.members for g in all_groups}
+    _log.debug('groups before merge {}'.format(groups))
+    keep = {name: True for name in groups.keys()}
+
+    def merge(g1, g2):
+        groups[g1] = list(set(groups[g1] + groups[g2]))
+        groups[g2] = groups[g1]
+        keep[g1] = True
+        keep[g2] = False
+        return g1
+
+    for group in cmd_groups:
+        to_merge = group.name
+        for member in group.members:
+            groups_set = set([k for k in groups.keys()
+                              if k != to_merge and keep[k]])
+            while len(groups_set) > 0:
+                name = groups_set.pop()
+                members = groups[name]
+                if member in members and to_merge != name:
+                    if to_merge in groups_set:
+                        groups_set.remove(to_merge)
+                    to_merge = merge(name, to_merge)
+                    _log.debug('merge {} with {}'.format(to_merge, name))
+                    groups_set.add(to_merge)
+
+    # _log.debug('keep {}'.format(keep))
+    return [g for g in all_groups if keep[g.name]]
 
 
 def _add_property(merged_p, new_p, f_merge=lambda x, y: x if x == y else None):

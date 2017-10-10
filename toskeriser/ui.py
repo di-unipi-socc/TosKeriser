@@ -8,7 +8,7 @@ from sys import argv
 
 from six import StringIO, print_
 
-from . import __version__, analyser
+from . import __version__, toskeriser
 from .exceptions import TosKeriserException
 from .helper import CONST, Logger
 
@@ -81,14 +81,14 @@ def run():
     df_host = os.environ.get('DOCKERFINDER_HOST', CONST.DF_HOST)
     _log.debug('DF_HOST: {}'.format(df_host))
     try:
-        analyser.analyse_description(file_path, components=comps,
-                                     policy=policy,
-                                     constraints=constraint,
-                                     groups=groups,
-                                     interactive=flags.get(
-                                         'interactive', False),
-                                     force=flags.get('force', False),
-                                     df_host=df_host)
+        toskeriser.toskerise(file_path, components=comps,
+                             policy=policy,
+                             constraints=constraint,
+                             groups=groups,
+                             interactive=flags.get(
+                                'interactive', False),
+                             force=flags.get('force', False),
+                             df_host=df_host)
     except TosKeriserException as e:
         print_('ERRORS:\n{}'.format(e))
     finally:
