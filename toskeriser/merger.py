@@ -1,4 +1,4 @@
-from .exceptions import TosKeriserException
+from .exceptions import TkStackException
 from .helper import CONST, Logger
 
 _log = None
@@ -21,11 +21,11 @@ def merge_constraint(nodes_property):
                 else:
                     # if CONST.PROPERTY_SW of other properties
                     _add_property(merged_properties, p)
-            except TosKeriserException as e:
+            except TkStackException as e:
                 errors += e.stack
 
     if len(errors) != 0:
-        raise TosKeriserException(*errors)
+        raise TkStackException(*errors)
     _log.debug(merged_properties)
     p_list = _convert_to_list(merged_properties)
     _log.debug(p_list)
@@ -111,7 +111,7 @@ def _add_property(merged_p, new_p, f_merge=lambda x, y: x if x == y else None):
                                         new_p_key))
 
     if len(errors) != 0:
-        raise TosKeriserException(*errors)
+        raise TkStackException(*errors)
 
 
 def _merge_version(v1, v2):

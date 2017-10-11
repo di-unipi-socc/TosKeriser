@@ -1,12 +1,12 @@
 import traceback
 
 import ruamel.yaml
-from six import print_
+# from six import print_
 from toscaparser.common.exception import ValidationError
 from toscaparser.tosca_template import ToscaTemplate
 
 from . import completer, helper, merger, validator
-from .exceptions import TosKeriserException
+from .exceptions import TkStackException, TkException
 from .helper import CONST, Logger, Group
 
 _log = None
@@ -34,12 +34,12 @@ def toskerise(file_path, components=[], policy=None,
                            components, policy, constraints, groups,
                            interactive, force, df_host)
     except ValidationError as e:
-        raise TosKeriserException('Validation error:{}'.format(e))
-    except TosKeriserException as e:
+        raise TkStackException('Validation error:{}'.format(e))
+    except TkStackException as e:
         raise e
     except Exception as e:
-        print_('Internal error: {}'.format(e))
         _log.debug(traceback.format_exc())
+        raise TkException('Internal error: {}'.format(e))
 
 
 def _gen_new_path(file_path, mod):
@@ -66,8 +66,8 @@ def _process_tosca(file_path, new_path,
     groups = merger.merge_groups(cmd_group, tosca_group)
 
     to_complete = _filter_and_merge(tosca, groups, force, components)
-    if to_complete == 0:
-        raise TosKeriserException('no abstract node founded')
+    if len(to_complete) == 0:
+        raise TkStackException('no abstract node founded')
 
     tosca_yaml = _get_roundtrip_node(file_path)
     node_yaml = tosca_yaml['topology_template']['node_templates']
@@ -78,13 +78,13 @@ def _process_tosca(file_path, new_path,
             _log.debug('start completation of {}'.format(component.name))
             completer.complete(component, node_yaml, tosca, policy,
                                constraints, interactive, df_host)
-        except TosKeriserException as e:
-            errors += e.mgs
+        except TkStackException as e:
+            errors += e.stack
 
     if len(errors) == 0 and len(to_complete) != 0:
         _write_updates(tosca_yaml, new_path)
     elif len(errors) > 0:
-        raise TosKeriserException(*errors)
+        raise TkStackException(*errors)
 
 
 def _convert_cmd_group(tosca, groups):
@@ -101,7 +101,7 @@ def _convert_tosca_group(tosca):
 
 def _check_cmd_group(group):
     if len(set(group)) == len(group):
-        raise TosKeriserException('Command groups are overlapping')
+        raise TkStackException('Command groups are overlapping')
 
 
 def _filter_and_merge(tosca, groups, force, components):
@@ -124,8 +124,8 @@ def _filter_and_merge(tosca, groups, force, components):
                 group.constraints = merger.merge_constraint(constraints)
                 _log.debug('merged properties {}'.format(group.constraints))
                 to_update.append(group)
-            except TosKeriserException as e:
-                errors += e.mgs
+            except TkStackException as e:
+                errors += e.stack
 
     # remove the node that are already processed as part of a group
     for node in (n for n in tosca.nodetemplates
@@ -136,7 +136,7 @@ def _filter_and_merge(tosca, groups, force, components):
             to_update.append(node)
 
     if len(errors) != 0:
-        raise TosKeriserException(*errors)
+        raise TkStackException(*errors)
     return to_update
 
 
@@ -185,5 +185,5 @@ def _check_components(tosca, components):
                     if c == n.name:
                         correct = True
                 if not correct:
-                    raise TosKeriserException(
+                    raise TkStackException(
                         'component "{}" not founded'.format(c))

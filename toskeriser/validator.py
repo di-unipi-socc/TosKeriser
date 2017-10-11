@@ -2,13 +2,14 @@ import re
 
 from . import helper
 from .helper import CONST, Logger
-from .exceptions import TosKeriserException
+from .exceptions import TkStackException
 
 _log = None
 
 
 def validate_groups(tosca, groups):
-    # TODO: check that both the tosca_groups and the cmd_groups are not overlapping with themselves
+    # TODO: check that both the tosca_groups and the cmd_groups are not
+    # overlapping with themselves
 
     global _log
     _log = Logger.get(__name__)
@@ -55,7 +56,7 @@ def validate_groups(tosca, groups):
                         'another group "{}"'
                         ''.format(node.name, group.name))
     if len(errors) > 0:
-        raise TosKeriserException(*errors)
+        raise TkStackException(*errors)
 
 
 def validate_node_filter(tosca):
@@ -95,4 +96,4 @@ def validate_node_filter(tosca):
                 pass
 
     if len(errors) != 0:
-        raise TosKeriserException(*errors)
+        raise TkStackException(*errors)

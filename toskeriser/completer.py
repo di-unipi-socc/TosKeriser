@@ -5,7 +5,7 @@ import requests
 from six import print_
 
 from . import helper
-from .exceptions import TosKeriserException
+from .exceptions import TkStackException
 from .helper import CONST, Logger, Group
 
 _log = None
@@ -23,7 +23,7 @@ def complete(component, nodes_yaml, tosca,
     count, images = _get_images(properties, policy, constraints, df_host)
 
     if count == 0:
-        raise TosKeriserException(
+        raise TkStackException(
             'no image found for container "{}"'.format(component.name))
 
     print_('founded {:0} images for "{.name}" component'
@@ -78,11 +78,11 @@ def _build_query(properties, policy=None, constraints={}):
                 return value
             elif op in ('greater_or_equal', 'greater_than',
                         'less_than', 'less_or_equal'):
-                raise TosKeriserException(
+                raise TkStackException(
                     'in parsing {}: function not supported'
                     ''.format(f))
             else:
-                raise TosKeriserException(
+                raise TkStackException(
                     'in parsing {}: function not recognise'
                     ''.format(f))
 
@@ -93,7 +93,7 @@ def _build_query(properties, policy=None, constraints={}):
             version = re.match('[0-9]+(.[0-9]+)*', s)
             return version.group(0) if version is not None else ''
         else:
-            raise TosKeriserException(
+            raise TkStackException(
                 'in parsing {}: version format is not correct'
                 ''.format(s))
 
@@ -112,7 +112,7 @@ def _build_query(properties, policy=None, constraints={}):
         elif s.endswith('gb'):
             return int(s[:-2]) * 1000 * 1000 * 1000
         else:
-            raise TosKeriserException(
+            raise TkStackException(
                 'in parsing {}: unit not recognise'.format(s))
 
     def parse_op(s):
@@ -125,7 +125,7 @@ def _build_query(properties, policy=None, constraints={}):
         elif s.startswith('<'):
             return 'lt', s[1:]
         else:
-            raise TosKeriserException(
+            raise TkStackException(
                 'in parsing {}: operator not recognise'.format(s))
 
     def parse_unit_limit(s):
@@ -154,12 +154,12 @@ def _build_query(properties, policy=None, constraints={}):
                 (k, v), = s.items()
                 try:
                     query[k.lower()] = parse_version(v)
-                except TosKeriserException as e:
+                except TkStackException as e:
                     errors += e.stack
         if CONST.PROPERTY_OS in p:
             try:
                 query['distro'] = parse_functions(p[CONST.PROPERTY_OS])
-            except TosKeriserException as e:
+            except TkStackException as e:
                 errors += e.stack
 
     if 'size' in constraints:
@@ -167,30 +167,29 @@ def _build_query(properties, policy=None, constraints={}):
             _log.debug('size {}'.format(constraints['size']))
             op, num = parse_unit_limit(constraints['size'])
             query['size_{}'.format(op)] = num
-        except TosKeriserException as e:
+        except TkStackException as e:
             errors += e.stack
     if 'pulls' in constraints:
         try:
             op, num = parse_limit(constraints['pulls'])
             query['pulls_{}'.format(op)] = num
-        except TosKeriserException as e:
+        except TkStackException as e:
             errors += e.stack
     if 'stars' in constraints:
         try:
             op, num = parse_limit(constraints['stars'])
             query['stars_{}'.format(op)] = num
-        except TosKeriserException as e:
+        except TkStackException as e:
             errors += e.stack
 
     if len(errors) > 0:
-        raise TosKeriserException(*errors)
+        raise TkStackException(*errors)
 
     return query
 
 
 def _request(query, df_host):
     url = df_host + CONST.DF_SEARCH
-    _log.debug('prepare request on endpoint {}'.format(url))
     ret = requests.get(url, params=query,
                        headers={'Accept': 'applicaiton/json',
                                 'Content-type': 'application/json'})
@@ -199,7 +198,7 @@ def _request(query, df_host):
     json = ret.json()
     if 'images' in json:
         return json
-    raise TosKeriserException('Dockerfinder server error')
+    raise TkStackException('Dockerfinder server error')
 
 
 def _choose_image(images, interactive=False):

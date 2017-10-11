@@ -9,7 +9,7 @@ from sys import argv
 from six import StringIO, print_
 
 from . import __version__, toskeriser
-from .exceptions import TosKeriserException
+from .exceptions import TkStackException, TkException
 from .helper import CONST, Logger
 
 _USAGE = '''TosKeriser, a tool to complete TosKer application description with
@@ -89,8 +89,10 @@ def run():
                                 'interactive', False),
                              force=flags.get('force', False),
                              df_host=df_host)
-    except TosKeriserException as e:
+    except TkStackException as e:
         print_('ERRORS:\n{}'.format(e))
+    except TkException as e:
+        print_('Internal error: {}'.format(e))
     finally:
         if flags.get('quiet', False):
             sys.stdout = old_target

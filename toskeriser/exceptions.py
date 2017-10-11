@@ -1,5 +1,12 @@
-class TosKeriserException(Exception):
+class TkException(Exception):
+    def __init__(self, msg):
+        self.msg = msg
 
+    def __str__(self):
+        return self.msg
+
+
+class TkStackException(Exception):
     def __init__(self, *msg):
         self.stack = list(msg)
 
