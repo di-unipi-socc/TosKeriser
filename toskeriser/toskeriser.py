@@ -5,20 +5,17 @@ import ruamel.yaml
 from toscaparser.common.exception import ValidationError
 from toscaparser.tosca_template import ToscaTemplate
 
-from . import completer, helper, merger, validator
+from . import completer, helper, merger, validator, requester
 from .exceptions import TkStackException, TkException
 from .helper import CONST, Logger, Group
 
 _log = None
 
 
-def toskerise(file_path, components=[], policy=None,
-              constraints={},
-              interactive=False, force=False,
-              df_host=CONST.DF_HOST):
+def toskerise(file_path, components=[], policy=None, constraints={},
+              interactive=False, force=False, df_host=CONST.DF_HOST):
     global _log
     _log = Logger.get(__name__)
-    # TODO: check inputs: policy, constraints
 
     is_csar = file_path.endswith(('.zip', '.csar', '.CSAR'))
     _log.debug('CSAR founded: {}'.format(is_csar))
@@ -46,6 +43,10 @@ def toskerise(file_path, components=[], policy=None,
         raise TkException('Internal error: {}'.format(e))
 
 
+def software_list(df_host):
+    return requester.get_software(df_host)
+
+
 def _gen_new_path(file_path, mod):
     points = file_path.split('.')
     return '{}.{}.{}'.format('.'.join(points[:-1]), mod, points[-1])
@@ -53,15 +54,14 @@ def _gen_new_path(file_path, mod):
 
 def _process_tosca(file_path, components=[], policy=None, constraints={},
                    interactive=False, force=False, df_host=CONST.DF_HOST):
-    _log.debug('update TOSCA YAML file {}'.format(file_path))
-
+    # parse TOSCA
     tosca = ToscaTemplate(file_path)
 
-    # Check inputs
+    # Check TOSCA dependent input
     _check_components(tosca, components)
 
     # validation
-    validator.validate_node_filter(tosca)
+    validator.validate_node_filter(tosca, df_host)
     groups = _convert_tosca_group(tosca)
     validator.validate_groups(tosca, groups)
 

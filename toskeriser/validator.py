@@ -1,17 +1,13 @@
 import re
 
-from . import helper
+from . import helper, requester
 from .helper import CONST, Logger
 from .exceptions import TkStackException
-
-_log = None
 
 
 def validate_groups(tosca, groups):
     # TODO: check that both the groups are not
     # overlapping with themselves
-
-    global _log
     _log = Logger.get(__name__)
 
     def is_in_members(node, members):
@@ -59,9 +55,11 @@ def validate_groups(tosca, groups):
         raise TkStackException(*errors)
 
 
-def validate_node_filter(tosca):
-    global _log
+def validate_node_filter(tosca, df_host):
     _log = Logger.get(__name__)
+
+    supported_sw = requester.get_software(df_host)
+    _log.debug('software on DF {}'.format(supported_sw))
 
     errors = []
     for node in tosca.nodetemplates:
@@ -83,6 +81,10 @@ def validate_node_filter(tosca):
                     continue
                 for software in value:
                     s, v = list(software.items())[0]
+                    if s not in supported_sw:
+                        errors.append(
+                            'Node "{}": software "{}" is not supported'
+                            ''.format(node.name, s))
                     match = re.match('^([0-9]+.)*([0-9]+|x)?$', str(v))
                     if not isinstance(v, str) or match is None:
                         errors.append(

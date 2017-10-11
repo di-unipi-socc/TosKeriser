@@ -22,6 +22,7 @@ topology_template:
              - ruby: asv
              - wget: 6.x.x
              - wget: '6.0'
+             - wgat: 6.0.4
            - os_distribution: 234
       interfaces:
        Standard:

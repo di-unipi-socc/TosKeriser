@@ -1,10 +1,9 @@
 import copy
 import re
 
-import requests
 from six import print_
 
-from . import helper
+from . import helper, requester
 from .exceptions import TkStackException
 from .helper import CONST, Logger, Group
 
@@ -55,13 +54,12 @@ def _get_images(properties,
     query = _build_query(properties, policy, constraints)
     _log.debug('query {}'.format(query))
 
-    responce = _request(query, df_host)
-    images = responce['images']
+    count, images = requester.search_images(query, df_host)
     _log.debug('returned images..')
 
     if len(images) < 1:
         return 0, None
-    return responce['count'], images
+    return count, images
 
 
 def _build_query(properties, policy=None, constraints={}):
@@ -186,19 +184,6 @@ def _build_query(properties, policy=None, constraints={}):
         raise TkStackException(*errors)
 
     return query
-
-
-def _request(query, df_host):
-    url = df_host + CONST.DF_SEARCH
-    ret = requests.get(url, params=query,
-                       headers={'Accept': 'applicaiton/json',
-                                'Content-type': 'application/json'})
-
-    _log.debug('request done on url {}'.format(ret.url))
-    json = ret.json()
-    if 'images' in json:
-        return json
-    raise TkStackException('Dockerfinder server error')
 
 
 def _choose_image(images, interactive=False):

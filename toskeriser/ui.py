@@ -17,6 +17,7 @@ suitable Docker Images.
 
 toskerise FILE [COMPONENT..] [OPTIONS]
 toskerise --help|-h
+toskerise --supported_sw|-s
 toskerise --version|-v
 
 FILE
@@ -58,6 +59,12 @@ def run():
         print_('TosKeriser version {}'.format(__version__))
         exit(0)
 
+    df_host = os.environ.get('DOCKERFINDER_HOST', CONST.DF_HOST)
+    if flags.get('supported_sw', False):
+        software = toskeriser.software_list(df_host)
+        print_('Supported software:\n{}'.format('\n'.join(software)))
+        exit(0)
+
     Logger.set_logger(logging.CRITICAL)
     if flags.get('debug', False) and not flags.get('quiet', False):
         Logger.set_logger(logging.DEBUG)
@@ -65,6 +72,8 @@ def run():
         old_target, sys.stdout = sys.stdout, StringIO()
 
     _log = Logger.get(__name__)
+    _log.debug('DF_HOST: {}'.format(df_host))
+
     _log.debug('input parameters: {}, {}, {}, {}'.format(
         file_path, comps, flags, params))
 
@@ -74,8 +83,7 @@ def run():
     policy = params.get('policy', None)
     _log.debug('policy {}'.format(policy))
 
-    df_host = os.environ.get('DOCKERFINDER_HOST', CONST.DF_HOST)
-    _log.debug('DF_HOST: {}'.format(df_host))
+
     try:
         toskeriser.toskerise(file_path, components=comps,
                              policy=policy,
@@ -128,6 +136,8 @@ _FLAG = {
     '--quiet': 'quiet',
     '--help': 'help',
     '-h': 'help',
+    '--supported_sw': 'supported_sw',
+    '-s': 'supported_sw',
     '-v': 'version',
     '--version': 'version',
     '-i': 'interactive',

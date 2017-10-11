@@ -14,13 +14,45 @@ from toskeriser.exceptions import TkException
 
 
 class TestUpper(TestCase):
+    _mock_sw_responce = {
+      "count": 28,
+      "software": [
+        {"name": "python"},
+        {"name": "java"},
+        {"name": "perl"},
+        {"name": "curl"},
+        {"name": "nano"},
+        {"name": "php"},
+        {"name": "scala"},
+        {"name": "ruby"},
+        {"name": "groovy"},
+        {"name": "httpd"},
+        {"name": "nginx"},
+        {"name": "npm"},
+        {"name": "gunicorn"},
+        {"name": "pip"},
+        {"name": "mvn"},
+        {"name": "node"},
+        {"name": "wget"},
+        {"name": "gradle"},
+        {"name": "ash"},
+        {"name": "ping"},
+        {"name": "git"},
+        {"name": "bash"},
+        {"name": "zsh"},
+        {"name": "go"},
+        {"name": "erl"},
+        {"name": "zip"},
+        {"name": "unzip"},
+        {"name": "tar"}]
+    }
 
     @classmethod
     def setUpClass(self):
         self._file_path = ''
         self._new_path = ''
+        self._node_templates = None
         self._mock_responces = {}
-        self._node_templates = yaml.load()
 
     def setUp(self):
         try:
@@ -57,8 +89,10 @@ class TestUpper(TestCase):
     def _test(self, base_par, policy=None, constraints={}, force=False):
         with requests_mock.mock() as m:
             # register mock requests
+            m.get('http://df.io:3001/api/software',
+                  json=TestUpper._mock_sw_responce, complete_qs=True)
             for par, res in self._mock_responces.items():
-                m.get('http://df.io/search?{}&{}'.format(base_par, par),
+                m.get('http://df.io:3000/search?{}&{}'.format(base_par, par),
                       json=res, complete_qs=True)
 
             # start the completation

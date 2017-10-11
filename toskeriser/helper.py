@@ -10,8 +10,9 @@ from toscaparser.prereq.csar import CSAR
 class CONST:
     # DF_HOST = 'http://131.114.2.77/search'
     # DF_HOST = 'http://127.0.0.1:3000/search'
-    DF_HOST = 'http://black.di.unipi.it:3000'
-    DF_SEARCH = '/search'
+    DF_HOST = 'http://black.di.unipi.it'
+    DF_SEARCH = ':3000/search'
+    DF_SOFTWARE = ':3001/api/software'
 
     # CONTAINER_TYPE = 'tosker.nodes.Container'
     SOFTWARE_TYPE = 'tosker.nodes.Software'
