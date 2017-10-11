@@ -13,26 +13,30 @@ _log = None
 
 
 def toskerise(file_path, components=[], policy=None,
-              constraints={}, groups=[],
+              constraints={},
               interactive=False, force=False,
               df_host=CONST.DF_HOST):
     global _log
     _log = Logger.get(__name__)
+    # TODO: check inputs: policy, constraints
+
+    is_csar = file_path.endswith(('.zip', '.csar', '.CSAR'))
+    _log.debug('CSAR founded: {}'.format(is_csar))
 
     new_path = _gen_new_path(file_path, 'completed')
     try:
-        if file_path.endswith(('.zip', '.csar', '.CSAR')):
-            _log.debug('CSAR founded')
+        if is_csar:
             csar_tmp_path, yaml_path = helper.unpack_csar(file_path)
-            _process_tosca(yaml_path, yaml_path,
-                           components, policy, constraints, groups,
-                           interactive, force, df_host)
+            tosca_yaml = _process_tosca(yaml_path,
+                                        components, policy, constraints,
+                                        interactive, force, df_host)
+            _write_updates(tosca_yaml, yaml_path)
             helper.pack_csar(csar_tmp_path, new_path)
         else:
-            _log.debug('YAML founded')
-            _process_tosca(file_path, new_path,
-                           components, policy, constraints, groups,
-                           interactive, force, df_host)
+            tosca_yaml = _process_tosca(file_path,
+                                        components, policy, constraints,
+                                        interactive, force, df_host)
+            _write_updates(tosca_yaml, new_path)
     except ValidationError as e:
         raise TkStackException('Validation error:{}'.format(e))
     except TkStackException as e:
@@ -47,10 +51,9 @@ def _gen_new_path(file_path, mod):
     return '{}.{}.{}'.format('.'.join(points[:-1]), mod, points[-1])
 
 
-def _process_tosca(file_path, new_path,
-                   components=[], policy=None, constraints={}, groups=[],
+def _process_tosca(file_path, components=[], policy=None, constraints={},
                    interactive=False, force=False, df_host=CONST.DF_HOST):
-    _log.debug('update TOSCA YAML file {} to {}'.format(file_path, new_path))
+    _log.debug('update TOSCA YAML file {}'.format(file_path))
 
     tosca = ToscaTemplate(file_path)
 
@@ -59,11 +62,8 @@ def _process_tosca(file_path, new_path,
 
     # validation
     validator.validate_node_filter(tosca)
-    cmd_group = _convert_cmd_group(tosca, groups)
-    tosca_group = _convert_tosca_group(tosca)
-    validator.validate_groups(tosca, cmd_group)
-    validator.validate_groups(tosca, tosca_group)
-    groups = merger.merge_groups(cmd_group, tosca_group)
+    groups = _convert_tosca_group(tosca)
+    validator.validate_groups(tosca, groups)
 
     to_complete = _filter_and_merge(tosca, groups, force, components)
     if len(to_complete) == 0:
@@ -81,27 +81,15 @@ def _process_tosca(file_path, new_path,
         except TkStackException as e:
             errors += e.stack
 
-    if len(errors) == 0 and len(to_complete) != 0:
-        _write_updates(tosca_yaml, new_path)
-    elif len(errors) > 0:
+    if len(errors) > 0:
         raise TkStackException(*errors)
-
-
-def _convert_cmd_group(tosca, groups):
-    return [Group('-'.join(members),
-                  [helper.get_node_from_tpl(tosca, m) for m in members])
-            for members in groups]
+    return tosca_yaml
 
 
 def _convert_tosca_group(tosca):
     return [Group(g.name,
                   [helper.get_node_from_tpl(tosca, m) for m in g.members])
             for g in tosca.topology_template.groups]
-
-
-def _check_cmd_group(group):
-    if len(set(group)) == len(group):
-        raise TkStackException('Command groups are overlapping')
 
 
 def _filter_and_merge(tosca, groups, force, components):

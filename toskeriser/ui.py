@@ -34,7 +34,6 @@ OPTIONS
                                        (e.g. --constraints 'size<=99MB pulls>30
                                                             stars>10')
   --policy=top_rated|size|most_used    ordering of the images
-  --group=comp1,...,compN              create a new component group
 '''
 
 _log = None
@@ -75,18 +74,13 @@ def run():
     policy = params.get('policy', None)
     _log.debug('policy {}'.format(policy))
 
-    groups = params.get('group', [])
-    _log.debug('group {}'.format(groups))
-
     df_host = os.environ.get('DOCKERFINDER_HOST', CONST.DF_HOST)
     _log.debug('DF_HOST: {}'.format(df_host))
     try:
         toskeriser.toskerise(file_path, components=comps,
                              policy=policy,
                              constraints=constraint,
-                             groups=groups,
-                             interactive=flags.get(
-                                'interactive', False),
+                             interactive=flags.get('interactive', False),
                              force=flags.get('force', False),
                              df_host=df_host)
     except TkStackException as e:
@@ -128,16 +122,6 @@ def _parse_policy(policy, params=None):
         return policy
 
 
-def _parse_group(group, params=None):
-    if group is not None:
-        group_list = [x.strip() for x in group.split(',')]
-        if params is not None:
-            params.append(group_list)
-            return params
-        else:
-            return [group_list]
-
-
 _FLAG = {
     '--debug': 'debug',
     '-q': 'quiet',
@@ -155,7 +139,6 @@ _FLAG = {
 _PARAMS = {
     '--policy': _parse_policy,
     '--constraints': _parse_contraint,
-    '--group': _parse_group
 }
 
 

@@ -8,7 +8,7 @@ _log = None
 
 
 def validate_groups(tosca, groups):
-    # TODO: check that both the tosca_groups and the cmd_groups are not
+    # TODO: check that both the groups are not
     # overlapping with themselves
 
     global _log
