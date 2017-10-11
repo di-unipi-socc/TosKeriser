@@ -1,6 +1,6 @@
 import yaml
 
-from toskeriser.exceptions import TosKeriserException
+from toskeriser.exceptions import TkStackException
 
 from .test_upper import TestUpper
 
@@ -14,7 +14,17 @@ class TestGroupSwError(TestUpper):
         self._mock_responces = {}
         self._node_templates = yaml.load('')
 
-    def test_all(self):
+    def test_default(self):
         # TODO: check the specific error
-        with self.assertRaises(TosKeriserException):
-            self.start_test()
+        with self.assertRaises(TkStackException):
+            self._default_test()
+
+    def test_policy(self):
+        # TODO: check the specific error
+        with self.assertRaises(TkStackException):
+            self._policy_test()
+
+    def test_constraints(self):
+        # TODO: check the specific error
+        with self.assertRaises(TkStackException):
+            self._constraints_test()

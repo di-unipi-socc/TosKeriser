@@ -1,6 +1,6 @@
 import yaml
 
-from toskeriser.exceptions import TosKeriserException
+from toskeriser.exceptions import TkStackException
 
 from .test_upper import TestUpper
 
@@ -62,7 +62,17 @@ server_container:
       repository: docker_hub
 ''')
 
-    def test_all(self):
-        with self.assertRaises(TosKeriserException):
-            self.start_test()
-        self.start_test(force=True)
+    def test_default(self):
+        with self.assertRaises(TkStackException):
+            self._default_test()
+        self._default_test(force=True)
+
+    def test_policy(self):
+        with self.assertRaises(TkStackException):
+            self._policy_test()
+        self._policy_test(force=True)
+
+    def test_constraints(self):
+        with self.assertRaises(TkStackException):
+            self._constraints_test()
+        self._constraints_test(force=True)

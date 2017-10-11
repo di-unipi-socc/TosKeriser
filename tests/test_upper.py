@@ -1,5 +1,6 @@
 import os
 import sys
+import traceback
 from unittest import TestCase
 
 import requests_mock
@@ -9,6 +10,7 @@ from six import StringIO, print_
 from toskeriser import helper
 from toskeriser.toskeriser import toskerise
 from toskeriser.helper import CONST
+from toskeriser.exceptions import TkException
 
 
 class TestUpper(TestCase):
@@ -32,11 +34,6 @@ class TestUpper(TestCase):
     #     except OSError:
     #         pass
 
-    def start_test(self, force=False):
-        self._default_test(force)
-        self._policy_test(force)
-        self._constraints_test(force)
-
     def _default_test(self, force=False):
         _base_par = 'size_gt=0&sort=stars&sort=pulls&sort=-size'
         self._test(_base_par, force=force)
@@ -51,7 +48,7 @@ class TestUpper(TestCase):
         run(CONST.POLICY_USED, 'sort=pulls&sort=stars&sort=-size')
 
     def _constraints_test(self, force=False):
-        get_par = 'pulls_gt=20&stars_lte=100&size_lt=1000000000&'\
+        get_par = 'size_gt=0&pulls_gt=20&stars_lte=100&size_lt=1000000000&'\
                   'sort=stars&sort=pulls&sort=-size'
 
         constraints = {'pulls': '>20', 'stars': '<=100', 'size': '<1GB'}
@@ -66,18 +63,23 @@ class TestUpper(TestCase):
 
             # start the completation
             sys.stdout, old_stdout = StringIO(), sys.stdout
-            toskerise(
-                self._file_path, components=[], policy=policy,
-                constraints=constraints, interactive=False, force=force,
-                df_host='http://df.io'
-            )
+            try:
+                toskerise(
+                    self._file_path, components=[], policy=policy,
+                    constraints=constraints, interactive=False, force=force,
+                    df_host='http://df.io'
+                )
+
+                # check the result
+                if self._new_path.endswith('.csar'):
+                    _, self._new_path = helper.unpack_csar(self._new_path)
+
+                self._check_TOSCA(self._new_path)
+            except TkException as e:
+                sys.stdout = old_stdout
+                print_(e, traceback.format_exc())
+                self.assertTrue(False)
             sys.stdout = old_stdout
-
-        # check the result
-        if self._new_path.endswith('.csar'):
-            _, self._new_path = helper.unpack_csar(self._new_path)
-
-        self._check_TOSCA(self._new_path)
 
     def _check_TOSCA(self, new_path):
         # tosca = ToscaTemplate(new_path)

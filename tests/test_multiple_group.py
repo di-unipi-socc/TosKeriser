@@ -203,7 +203,11 @@ app6_container:
       repository: docker_hub
 ''')
 
-    def test_all(self):
-        # from toskeriser.helper import Logger
-        # Logger.set_logger()
-        self.start_test()
+    def test_default(self):
+        self._default_test()
+
+    def test_policy(self):
+        self._policy_test()
+
+    def test_constraints(self):
+        self._constraints_test()

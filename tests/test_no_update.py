@@ -1,6 +1,6 @@
 import yaml
 
-from toskeriser.exceptions import TosKeriserException
+from toskeriser.exceptions import TkStackException
 
 from .test_upper import TestUpper
 
@@ -14,10 +14,21 @@ class TestNoUpdate(TestUpper):
         self._mock_responces = {}
         self._node_templates = yaml.load('')
 
-    def test_all(self):
-        # TODO: check the specific error
-        with self.assertRaises(TosKeriserException):
-            self.start_test()
-        # TODO: check the specific error
-        with self.assertRaises(TosKeriserException):
-            self.start_test(force=True)
+    # TODO: check the specific error
+    def test_default(self):
+        with self.assertRaises(TkStackException):
+            self._default_test()
+        with self.assertRaises(TkStackException):
+            self._default_test(force=True)
+
+    def test_policy(self):
+        with self.assertRaises(TkStackException):
+            self._policy_test()
+        with self.assertRaises(TkStackException):
+            self._policy_test(force=True)
+
+    def test_constraints(self):
+        with self.assertRaises(TkStackException):
+            self._constraints_test()
+        with self.assertRaises(TkStackException):
+            self._constraints_test(force=True)
