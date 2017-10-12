@@ -6,9 +6,7 @@ from .exceptions import TkStackException
 
 
 def validate_groups(tosca, groups):
-    # TODO: check that both the groups are not
-    # overlapping with themselves
-    _log = Logger.get(__name__)
+    # _log = Logger.get(__name__)
 
     def is_in_members(node, members):
         from toscaparser.nodetemplate import NodeTemplate
@@ -17,10 +15,12 @@ def validate_groups(tosca, groups):
         return any((node == m.name for m in members))
 
     errors = []
-    for group in groups:
-        if len(set([m.name for m in group.members])) != len(group.members):
-            errors.append('Group "{}" members are repeted')
+    all_members = [m.name for g in groups for m in g.members]
+    if len(set(all_members)) != len(all_members):
+        errors.append('Groups are not disjoint. One or more component apper '
+                      'in multiple groups')
 
+    for group in groups:
         for node in group.members:
             # check if all memeber of the group are software
             if node.type != CONST.SOFTWARE_TYPE:

@@ -10,20 +10,36 @@ imports:
 
 topology_template:
   groups:
+    # Working
     my_group1:
       type: tosker.groups.DeploymentUnit
       members: [ app1, nodejs1 ]
+
+    # ERROR: Node "app2" requires a host to a no member component, "nodejs2"
     my_group2:
       type: tosker.groups.DeploymentUnit
       members: [ app2 ]
+
+    # ERROR: Node "app3" requires a host to a node member of another group "my_group3"
     my_group3:
       type: tosker.groups.DeploymentUnit
       members: [ nodejs3 ]
+
+    # ERROR: Group "my_group4" has a member, "nodejs_container", that is not a software component
     my_group4:
       type: tosker.groups.DeploymentUnit
       members: [ app4, nodejs_container ]
 
+    # ERROR: Groups are not disjoint. One or more component apper in multiple groups
+    my_group5A:
+      type: tosker.groups.DeploymentUnit
+      members: [ nodejs5A, nodejs5B]
+    my_group5B:
+      type: tosker.groups.DeploymentUnit
+      members: [ nodejs5B ]
+
   node_templates:
+# Example1
     app1:
       type: tosker.nodes.Software
       requirements:
@@ -32,7 +48,6 @@ topology_template:
        Standard:
          start:
            implementation: get_version.sh
-
     nodejs1:
       type: tosker.nodes.Software
       requirements:
@@ -44,6 +59,8 @@ topology_template:
         Standard:
           create:
             implementation: install_node.sh
+
+# Example2
     app2:
       type: tosker.nodes.Software
       requirements:
@@ -52,7 +69,6 @@ topology_template:
        Standard:
          start:
            implementation: get_version.sh
-
     nodejs2:
       type: tosker.nodes.Software
       requirements:
@@ -64,6 +80,8 @@ topology_template:
         Standard:
           create:
             implementation: install_node.sh
+
+# Example3
     app3:
       type: tosker.nodes.Software
       requirements:
@@ -72,7 +90,6 @@ topology_template:
        Standard:
          start:
            implementation: get_version.sh
-
     nodejs3:
       type: tosker.nodes.Software
       requirements:
@@ -85,6 +102,7 @@ topology_template:
           create:
             implementation: install_node.sh
 
+# Example4
     app4:
       type: tosker.nodes.Software
       requirements:
@@ -93,8 +111,31 @@ topology_template:
        Standard:
          start:
            implementation: get_version.sh
-
     nodejs_container:
       type: tosker.nodes.Container
       artifacts:
         my_image: node:6
+
+# Example5
+    nodejs5A:
+      type: tosker.nodes.Software
+      requirements:
+      - host:
+          node_filter:
+            properties:
+            - os_distribution: ubuntu
+      interfaces:
+        Standard:
+          create:
+            implementation: install_node.sh
+    nodejs5B:
+      type: tosker.nodes.Software
+      requirements:
+      - host:
+          node_filter:
+            properties:
+            - os_distribution: ubuntu
+      interfaces:
+        Standard:
+          create:
+            implementation: install_node.sh
