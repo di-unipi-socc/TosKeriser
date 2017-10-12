@@ -21,12 +21,11 @@ def complete(component, nodes_yaml, tosca,
 
     count, images = _get_images(properties, policy, constraints, df_host)
 
-    if count == 0:
-        raise TkStackException(
-            'no image found for container "{}"'.format(component.name))
-
     print_('founded {:0} images for "{.name}" component'
            ''.format(count, component))
+
+    if count == 0:
+        return False
 
     image = _choose_image(images, interactive)
 
@@ -44,6 +43,7 @@ def complete(component, nodes_yaml, tosca,
                ''.format(component.name, image['name'],
                          image['size'] / 1000000, image['pulls'],
                          image['stars']))
+    return True
 
 
 def _get_images(properties,

@@ -20,20 +20,27 @@ def toskerise(file_path, components=[], policy=None, constraints={},
     is_csar = file_path.endswith(('.zip', '.csar', '.CSAR'))
     _log.debug('CSAR founded: {}'.format(is_csar))
 
-    new_path = _gen_new_path(file_path, 'completed')
+    def get_new_path(partial):
+        return _gen_new_path(file_path, 'partial') \
+            if partial else\
+            _gen_new_path(file_path, 'completed')
+
     try:
         if is_csar:
             csar_tmp_path, yaml_path = helper.unpack_csar(file_path)
-            tosca_yaml = _process_tosca(yaml_path,
-                                        components, policy, constraints,
-                                        interactive, force, df_host)
+            is_partial, tosca_yaml = _process_tosca(yaml_path, components,
+                                                    policy, constraints,
+                                                    interactive, force,
+                                                    df_host)
             _write_updates(tosca_yaml, yaml_path)
-            helper.pack_csar(csar_tmp_path, new_path)
+            helper.pack_csar(csar_tmp_path, get_new_path(is_partial))
         else:
-            tosca_yaml = _process_tosca(file_path,
-                                        components, policy, constraints,
-                                        interactive, force, df_host)
-            _write_updates(tosca_yaml, new_path)
+            is_partial, tosca_yaml = _process_tosca(file_path, components,
+                                                    policy, constraints,
+                                                    interactive, force,
+                                                    df_host)
+            _write_updates(tosca_yaml, get_new_path(is_partial))
+        _log.debug('is partial {}'.format(is_partial))
     except ValidationError as e:
         raise TkStackException('Validation error:{}'.format(e))
     except TkStackException as e:
@@ -73,17 +80,20 @@ def _process_tosca(file_path, components=[], policy=None, constraints={},
     node_yaml = tosca_yaml['topology_template']['node_templates']
 
     errors = []
+    all_completed = True
     for component in to_complete:
         try:
             _log.debug('start completation of {}'.format(component.name))
-            completer.complete(component, node_yaml, tosca, policy,
-                               constraints, interactive, df_host)
+            all_completed &= completer.complete(component, node_yaml, tosca,
+                                                policy, constraints,
+                                                interactive, df_host)
         except TkStackException as e:
             errors += e.stack
 
     if len(errors) > 0:
         raise TkStackException(*errors)
-    return tosca_yaml
+
+    return not all_completed, tosca_yaml
 
 
 def _convert_tosca_group(tosca):
