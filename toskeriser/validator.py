@@ -1,8 +1,8 @@
 import re
 
 from . import helper, requester
-from .helper import CONST, Logger
 from .exceptions import TkStackException
+from .helper import CONST, Logger
 
 
 def validate_groups(tosca, groups):

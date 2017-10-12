@@ -1,4 +1,5 @@
 class TkException(Exception):
+
     def __init__(self, msg):
         self.msg = msg
 
@@ -7,6 +8,7 @@ class TkException(Exception):
 
 
 class TkStackException(Exception):
+
     def __init__(self, *msg):
         self.stack = list(msg)
 

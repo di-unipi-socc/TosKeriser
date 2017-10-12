@@ -8,9 +8,9 @@ import yaml
 from six import StringIO, print_
 
 from toskeriser import helper
-from toskeriser.toskeriser import toskerise
-from toskeriser.helper import CONST
 from toskeriser.exceptions import TkException
+from toskeriser.helper import CONST
+from toskeriser.toskeriser import toskerise
 
 
 class TestUpper(TestCase):

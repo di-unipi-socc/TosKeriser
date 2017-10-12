@@ -5,9 +5,9 @@ import ruamel.yaml
 from toscaparser.common.exception import ValidationError
 from toscaparser.tosca_template import ToscaTemplate
 
-from . import completer, helper, merger, validator, requester
-from .exceptions import TkStackException, TkException
-from .helper import CONST, Logger, Group
+from . import completer, helper, merger, requester, validator
+from .exceptions import TkException, TkStackException
+from .helper import CONST, Logger
 
 _log = None
 
@@ -21,26 +21,34 @@ def toskerise(file_path, components=[], policy=None, constraints={},
     _log.debug('CSAR founded: {}'.format(is_csar))
 
     def get_new_path(partial):
-        return _gen_new_path(file_path, 'partial') \
+        def gen_new_path(mod):
+            points = file_path.split('.')
+            return '{}.{}.{}'.format('.'.join(points[:-1]), mod, points[-1])
+        return gen_new_path('partial') \
             if partial else\
-            _gen_new_path(file_path, 'completed')
+            gen_new_path('completed')
 
     try:
         if is_csar:
+            # extract CSAR
             csar_tmp_path, yaml_path = helper.unpack_csar(file_path)
+            # process TOSCA
             is_partial, tosca_yaml = _process_tosca(yaml_path, components,
                                                     policy, constraints,
                                                     interactive, force,
                                                     df_host)
+            # write changes
             _write_updates(tosca_yaml, yaml_path)
+            # pack CSAR
             helper.pack_csar(csar_tmp_path, get_new_path(is_partial))
         else:
+            # process TOSCA
             is_partial, tosca_yaml = _process_tosca(file_path, components,
                                                     policy, constraints,
                                                     interactive, force,
                                                     df_host)
+            # write changes
             _write_updates(tosca_yaml, get_new_path(is_partial))
-        _log.debug('is partial {}'.format(is_partial))
     except ValidationError as e:
         raise TkStackException('Validation error:{}'.format(e))
     except TkStackException as e:
@@ -54,11 +62,6 @@ def software_list(df_host):
     return requester.get_software(df_host)
 
 
-def _gen_new_path(file_path, mod):
-    points = file_path.split('.')
-    return '{}.{}.{}'.format('.'.join(points[:-1]), mod, points[-1])
-
-
 def _process_tosca(file_path, components=[], policy=None, constraints={},
                    interactive=False, force=False, df_host=CONST.DF_HOST):
     # parse TOSCA
@@ -69,13 +72,15 @@ def _process_tosca(file_path, components=[], policy=None, constraints={},
 
     # validation
     validator.validate_node_filter(tosca, df_host)
-    groups = _convert_tosca_group(tosca)
+    groups = helper.convert_tosca_group(tosca)
     validator.validate_groups(tosca, groups)
 
+    # filter and merge
     to_complete = _filter_and_merge(tosca, groups, force, components)
     if len(to_complete) == 0:
         raise TkStackException('no abstract node founded')
 
+    # get yaml to be updated
     tosca_yaml = _get_roundtrip_node(file_path)
     node_yaml = tosca_yaml['topology_template']['node_templates']
 
@@ -96,13 +101,11 @@ def _process_tosca(file_path, components=[], policy=None, constraints={},
     return not all_completed, tosca_yaml
 
 
-def _convert_tosca_group(tosca):
-    return [Group(g.name,
-                  [helper.get_node_from_tpl(tosca, m) for m in g.members])
-            for g in tosca.topology_template.groups]
-
-
 def _filter_and_merge(tosca, groups, force, components):
+    '''
+    Filter the groups and the nodes and returning a list of components
+    to be update.
+    '''
     already_analysed = []
     errors = []
     to_update = []
@@ -139,6 +142,9 @@ def _filter_and_merge(tosca, groups, force, components):
 
 
 def _must_update(node, force, components):
+    '''
+    Check if a node has to be update.
+    '''
     def is_software(node):
         return True if node.type == CONST.SOFTWARE_TYPE else False
 

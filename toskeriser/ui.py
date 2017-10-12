@@ -9,7 +9,7 @@ from sys import argv
 from six import StringIO, print_
 
 from . import __version__, toskeriser
-from .exceptions import TkStackException, TkException
+from .exceptions import TkException, TkStackException
 from .helper import CONST, Logger
 
 _USAGE = '''TosKeriser, a tool to complete TosKer application description with
@@ -82,7 +82,6 @@ def run():
 
     policy = params.get('policy', None)
     _log.debug('policy {}'.format(policy))
-
 
     try:
         toskeriser.toskerise(file_path, components=comps,

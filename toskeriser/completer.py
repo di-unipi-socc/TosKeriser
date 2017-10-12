@@ -5,7 +5,7 @@ from six import print_
 
 from . import helper, requester
 from .exceptions import TkStackException
-from .helper import CONST, Logger, Group
+from .helper import CONST, Group, Logger
 
 _log = None
 
@@ -46,11 +46,8 @@ def complete(component, nodes_yaml, tosca,
     return True
 
 
-def _get_images(properties,
-                policy=None, constraints=None, df_host=CONST.DF_HOST):
-    global _log
-    _log = Logger.get(__name__)
-
+def _get_images(properties, policy=None, constraints=None,
+                df_host=CONST.DF_HOST):
     query = _build_query(properties, policy, constraints)
     _log.debug('query {}'.format(query))
 

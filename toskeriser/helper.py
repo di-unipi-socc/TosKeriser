@@ -53,6 +53,7 @@ class Logger:
 
 
 class Group:
+
     def __init__(self, name, members):
         self.name = name
         self.members = members
@@ -83,6 +84,12 @@ def pack_csar(csar_tmp_path, new_path):
                 zf.write(path.join(dirname, filename),
                          path.relpath(path.join(dirname, filename),
                                       path.join(csar_tmp_path, '.')))
+
+
+def convert_tosca_group(tosca):
+    return [Group(g.name,
+                  [get_node_from_tpl(tosca, m) for m in g.members])
+            for g in tosca.topology_template.groups]
 
 
 def get_host(node):
@@ -127,4 +134,3 @@ def get_node_from_tpl(tosca, str_node):
         if node.name == str_node:
             return node
     return None
-    # return tosca.tpl['topology_template']['node_templates'][str_node]
