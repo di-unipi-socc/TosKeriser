@@ -111,53 +111,68 @@ OPTIONS
 
 
 ## Deployment Details
+
+### Architecture
+**TBD**
+
+
 ### Working schema
+Toskeriser go through the following set of steps to complete the imputed TOSCA representation of the application. Not all the steps are done by a different module.
+
+#### TOSCA parse [Core]
+If the input is a CSAR the content is extrated. After that the TOSCA YAML file is parsed and validated by using the `toscaparser` library by OpenStack.
+
+
+#### Validation [Validator]
+This phase validate that the `node_filter` and the `tosker.groups.DeploymentUnit` are defined as our specification, and that the software required by a nodes are available on DockerFinder.
+
+`node_filter` must contains only the `properties` key. The property `properties` must contains only `tosker.nodes.Container` properties and if the property is a dictionary the constraints must be specified as a list of list.
+
+For instance the following set of properties of a container must be specified in the `node_filter` as a list of list.
 ```
-                                                  +-----------+
-                                                  |           |
-                                    +------------->  Merger   |
-                                    |             |           |
-                                    |             +-----------+
-                                    |
-            +--------+         +----+-----+
-            |        |         |          |
-            |   UI   +---------> Analyser |
-            |        |         |          |
-            +--------+         +----+-----+
-                                    |
-                                    |             +-----------+
-                                    |             |           |
-                                    +-------------> Completer |
-                                                  |           |
-                                                  +-----------+
+properties:
+  supported_sw:
+    node: 6.2.1
+    ruby: 2.5
+    wget: 2
+  os_distribution: Alpine Linux v3.5
 ```
-### Modules
-#### ui
-- parse input parameters
-- call `analyser`
+```
+properties:
+- supported_sw:
+  - node: 6.2.x
+  - ruby: 2.x
+  - wget: x
+- os_distribution: alpine
+```
 
-#### analyser
-  - check input components
-  - validate node_filter
-  - merge topology groups with command-line groups
-  - for all groups
-    - call `merger` for merge constraints
-    - check if a group have to be updated
-    - call `completer`
-  - for all components not in groups
-    - check if a component have to be updated
-    - call `completer`
-  - create the complete file
+The `tosker.groups.DeploymentUnit` has a four constraints that must be checked:
+- The groups must contains only nodes of type`tosker.nodes.Software`
+- All the groups in the same `node_template` must be disjoint.
+- The nodes inside the group cannot have a host requirements towards a node that is not in the same groups.
+- The nodes of the group cannot be the target of a host requirements of a node that is not in the same group.
 
-#### completer
-  - build query
-  - search for image on DockerFinder
-  - chose an image
-  - complete TOSCA specification
+#### Filter [Core]
+This phase scan all the groups and all the nodes in order to find out what has to be completed. The output of this phase is a set of properties constraints one for every group or nodes to complete.
 
-#### merger
-  - for all constraint
-      - merge constraint
+A node is consider eligible to be updated if it:
+- is of type `tosker.nodes.Software`
+- has a `host` require without a target node
+- has a `host` requirements
+- is manually selected by the user
+
+If the user use the *force mode* are also consider eligible for update all the nodes that has target of the host requirements, but that have also the `node_filter` specified. This avoid to update containers manually selected by the user.
+
+#### Merge [Merger]
+This phase merge, if possible, the constrains of the components. The merge operation can return an errors if some different constraints are specified for the same container, i.e. to different port mapping, two different os distribution. For what concern the `supported_sw` instead it is possible to find a suitable version for different version constraint of the same software, i.e. java:1.x e java:1.8.3 -> java:1.8.3.
+
+#### Complete [Completer]
+For all components toskerise execute three phase:
+- *image search*, using the properties constrains the policy and other global constrains a query to DockerFinder is build and execute.
+- *choose image*, among all the images returned by DockerFinder one image is selected by a a function or by the user.
+- *complete tosca*, the TOSCA YAML specification is updated adding the new container and by updating the host requirements of the node or all the nodes in the group.
+
+If it is not possible to find all the components the specification is updated in anyway, but the user is notified.
 
 ### Algorithms
 **Must update**
@@ -172,30 +187,6 @@ if length(components) ≠ 0 ∧ component ∉ components
 if has_host_node(node) ∧ (¬force or ¬has_node_filter(node))
   return false
 return true;
-```
-
-**Merge groups**
-
-constrains: tosca_groups and cmd_groups must be disjoint
-```
-input: tosca_groups:array, cmd_groups:array
-output: array
-
-groups:array ← tosca_groups ∪ cmd_groups;
-
-∀ cmd_group ∈ cmd_groups {
-  to_merge:array ← cmd_group;
-  ∀ tosca_group ∈ tosca_groups {
-    ∀ member ∈ cmd_group{
-      if member ∈ tosca_group{
-        merge(tosca_group, to_merge);
-        break;
-      }
-    }
-  }
-}
-
-return groups;
 ```
 
 **Merge constraints**
