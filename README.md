@@ -18,6 +18,21 @@ If you wish to reuse the tool or the sources contained in this repository, pleas
 }
 ```
 
+## Table of Contents
+- [Quick Guide](#quick-guide)
+  * [Installation](#installation)
+  * [Example of usage](#example-of-usage)
+- [Usage guide](#usage-guide)
+- [Deployment Details](#deployment-details)
+  * [Working schema](#working-schema)
+    + [TOSCA parse](#tosca-parse)
+    + [Validation](#validation)
+    + [Filter](#filter)
+    + [Merge](#merge)
+    + [Complete](#complete)
+  * [Algorithms](#algorithms)
+- [License](#license)
+
 ## Quick Guide
 ### Installation
 In is possible to install TosKeriser by using pip:
