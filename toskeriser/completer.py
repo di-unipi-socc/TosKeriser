@@ -21,10 +21,12 @@ def complete(component, nodes_yaml, tosca,
 
     count, images = _get_images(properties, policy, constraints, df_host)
 
-    print_('founded {:0} images for "{.name}" component'
+    print_('founded {:0} images for "{.name}" node'
            ''.format(count, component))
 
     if count == 0:
+        print_('[WARNING] node "{.name}" will not be completed'
+               ''.format(component))
         return False
 
     image = _choose_image(images, interactive)
@@ -214,23 +216,24 @@ def _choose_image(images, interactive=False):
 def _update_yaml(node, nodes_yaml, image):
     # update host requirement of all node of the group
     container_name = '{}_container'.format(node.name)
-    req_node_yaml = helper.get_host(nodes_yaml[node.name])
-    req_node_yaml['node'] = container_name
+    node_yaml = nodes_yaml[node.name]
+    # req_node_yaml = helper.get_host(node_yaml)
+    # _log.debug('req_node_yaml {}, type {}'
+    #            ''.format(req_node_yaml, type(req_node_yaml)))
+    node_host = helper.get_host_node(node_yaml)
+    if node_host != container_name:
+        _log.debug('there is a different container')
+        del nodes_yaml[node_host]
+    helper.set_host_node(node_yaml, container_name)
 
-    # add container node to the template
-    try:
-        prop = req_node_yaml['node_filter']['properties']
-    except (KeyError, TypeError):
-        prop = []
-    nodes_yaml[container_name] = _build_container_node(image, prop)
+    nodes_yaml[container_name] = _build_container_node(image, node.constraints)
 
 
 def _update_group_yaml(component, nodes_yaml, image):
     # update host requirement of all node of the group
     container_name = '{}_container'.format(component.name)
     for m in (m for m in component.members if m.to_update):
-        req_node_yaml = helper.get_host(nodes_yaml[m.name])
-        req_node_yaml['node'] = container_name
+        helper.set_host_node(nodes_yaml[m.name], container_name)
 
     # add container node to the template
     node_filter = component.constraints

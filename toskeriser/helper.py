@@ -113,6 +113,19 @@ def get_host_key(node, key):
     return None
 
 
+def set_host_node(node, host_node):
+    if 'requirements' in node:
+        for r in node['requirements']:
+            (k, v), = r.items()
+            if CONST.REQUIREMENT_HOST == k:
+                if not isinstance(v, dict):
+                    r[k] = host_node
+                else:
+                    r[k]['node'] = host_node
+                return True
+    return False
+
+
 def get_host_node(node):
     requirement = get_host(node)
     if isinstance(requirement, string_types):

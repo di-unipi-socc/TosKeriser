@@ -59,7 +59,7 @@ def toskerise(file_path, components=[], policy=None, constraints={},
 
 
 def software_list(df_host):
-    return requester.get_software(df_host)
+    return sorted(requester.get_software(df_host))
 
 
 def _process_tosca(file_path, components=[], policy=None, constraints={},
@@ -159,7 +159,7 @@ def _must_update(node, force, components):
 
     if is_software(node) and\
        (len(components) == 0 or node.name in components) and\
-       (not has_node(node) or (force and has_nodefilter(node))):
+       (not has_node(node) or force):
         return True
     return False
 

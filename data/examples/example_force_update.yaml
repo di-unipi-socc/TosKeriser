@@ -33,3 +33,21 @@ topology_template:
           type: tosker.artifacts.Image
           repository: docker_hub
           file: node:6
+
+    app1:
+      type: tosker.nodes.Software
+      requirements:
+      - host:
+          node: nodejs_server
+      interfaces:
+        Standard:
+          start:
+            implementation: get_version.sh
+
+    nodejs_server:
+      type: tosker.nodes.Container
+      artifacts:
+        my_image:
+          type: tosker.artifacts.Image
+          repository: docker_hub
+          file: node:6
