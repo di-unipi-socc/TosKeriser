@@ -139,8 +139,8 @@ This phase validates that the `node_filter` and the `tosker.groups.DeploymentUni
 In particular the `tosker.groups.DeploymentUnit` has four constraints that must be checked:
 - The groups must contain only nodes of type`tosker.nodes.Software`
 - All the groups in the same `node_template` must be disjoint.
-- The nodes inside the group cannot have host requirements towards a node that is not in the same groups.
-- The nodes of the group cannot be the target of host requirements of a node that is not in the same group.
+- All software component inside the group must have either a host requirement toward another member of the group or to the same container.
+- The nodes of the group cannot be the target of host requirements of a software component that is not in the same group.
 
 #### Filter
 This phase scan all the groups and all the nodes in order to find out what has to be completed. A node is considered eligible to be updated if it:
