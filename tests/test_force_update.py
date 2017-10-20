@@ -103,6 +103,45 @@ app1_container:
       file: gitlab/gitlab-ce:9.0.10-ce.0
       type: tosker.artifacts.Image
       repository: docker_hub
+
+app3A:
+  type: tosker.nodes.Software
+  requirements:
+  - host: my_group_container
+  interfaces:
+    Standard:
+      start:
+        implementation: get_version.sh
+
+app3B:
+  type: tosker.nodes.Software
+  requirements:
+  - host:
+      node_filter:
+        properties:
+        - supported_sw:
+          - node: 6.x
+          - ruby: 2.x
+        - os_distribution: alpine
+      node: my_group_container
+  interfaces:
+    Standard:
+      start:
+        implementation: get_version.sh
+
+my_group_container:
+  type: tosker.nodes.Container
+  properties:
+    supported_sw:
+      ruby: 2.3.3
+      node: 6.9.5
+      wget: 1.25.1
+    os_distribution: Alpine Linux v3.5
+  artifacts:
+    my_image:
+      file: jekyll/jekyll:builder
+      type: tosker.artifacts.Image
+      repository: docker_hub
 ''')
 
     def test_default(self):

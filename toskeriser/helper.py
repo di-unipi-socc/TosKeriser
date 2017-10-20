@@ -14,7 +14,7 @@ class CONST:
     DF_SEARCH = ':3000/search'
     DF_SOFTWARE = ':3001/api/software'
 
-    # CONTAINER_TYPE = 'tosker.nodes.Container'
+    CONTAINER_TYPE = 'tosker.nodes.Container'
     SOFTWARE_TYPE = 'tosker.nodes.Software'
     # IMAGE_TYPE = 'tosker.artifacts.Image'
     # DOCKERFILE_TYPE = 'tosker.artifacts.Dockerfile'

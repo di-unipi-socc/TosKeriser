@@ -73,7 +73,7 @@ def _process_tosca(file_path, components=[], policy=None, constraints={},
     # validation
     validator.validate_node_filter(tosca, df_host)
     groups = helper.convert_tosca_group(tosca)
-    validator.validate_groups(tosca, groups)
+    validator.validate_groups(tosca, groups, force)
 
     # filter and merge
     to_complete = _filter_and_merge(tosca, groups, force, components)

@@ -233,6 +233,10 @@ def _update_group_yaml(component, nodes_yaml, image):
     # update host requirement of all node of the group
     container_name = '{}_container'.format(component.name)
     for m in (m for m in component.members if m.to_update):
+        node_host = helper.get_host_node(m)
+        if node_host != container_name:
+            _log.debug('there is a different container')
+            del nodes_yaml[node_host]
         helper.set_host_node(nodes_yaml[m.name], container_name)
 
     # add container node to the template
