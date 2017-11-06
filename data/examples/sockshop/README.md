@@ -1,5 +1,3 @@
-
-
 # SockShop
 
 > **SockShop** is a microservices demo application that simulates an e-commerce website that sells socks.
@@ -30,9 +28,42 @@ Each microservice is in charge to control a single functionality of the applicat
 - `Queue Master`: processes the orders queue. It spawns new docker containers (`weaveworksdemos/worker`) that simulate the shipping process.
 
 
-Main characteristic of the `SockShop` application:
- - _Microservice-based application_: it is designed to have as much as possible microservices  communicate using REST over HTTP.
- - _Polyglot_: it exploits different technologies and programming languages (_Java_, _go_,_NodeJs_, _RabbitMq_)
+
+
+### Test Toskeriser
+
+## Disk space usage
+Docker permits knowing the disk space usage of the `images`, `containers`, and `volumes`.
+```
+$ docker system df
+
+TYPE                TOTAL               ACTIVE              SIZE                RECLAIMABLE
+Images              0                   0                   0B                  0B
+Containers          0                   0                   0B                  0B
+Local Volumes       0                   0                   0B                  0B
+```
+
+#### Docker compose disk usage
+
+```
+$ docker-compose up
+$ docker system df
+TYPE                TOTAL               ACTIVE              SIZE                RECLAIMABLE
+Images              13                  13                  2.193GB             150.7MB (6%)
+Containers          14                  14                  0B                  0B
+Local Volumes       9                   9                   966.4MB             0B (0%)
+```
+
+
+### Toskeriser
+
+Images              19                  13                  5.035GB             2.423GB (48%)
+Containers          14                  13                  131.1kB             0B (0%)
+Local Volumes       19                  10                  2.106GB             1.047GB (49%)
+
+### Load of the system
+
+
 
 
 

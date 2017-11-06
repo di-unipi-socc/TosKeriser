@@ -166,10 +166,10 @@ services:
     read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid
-  user-sim:
-    image: weaveworksdemos/load-test
-    cap_drop:
-      - all
-    read_only: true
-    hostname: user-simulator
-    command: "-d 60 -r 200 -c 2 -h edge-router"
+  # user-sim:
+  #   image: weaveworksdemos/load-test
+  #   cap_drop:
+  #     - all
+  #   read_only: true
+  #   hostname: user-simulator
+  #   command: "-d 60 -r 200 -c 2 -h edge-router"
