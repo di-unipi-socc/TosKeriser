@@ -27,6 +27,30 @@ Each microservice is in charge to control a single functionality of the applicat
 - `Queue`: enqueues the orders in a queue.
 - `Queue Master`: processes the orders queue. It spawns new docker containers (`weaveworksdemos/worker`) that simulate the shipping process.
 
+## Run sockshop application with `tosKer`
+The guide assumes that `tosKer` is installed locally (`pip install tosker`).
+
+1. Build the `jar` files for the `Order`, `Cart`, `Shipping` microservices.
+```
+cd  TosKer/data/examples/sockshop
+./build-jars.sh
+```
+2. Create and start all the component with `TosKer`
+ ```
+ tosker sockshop.yml create start
+ ```
+
+3. Check if all the components are running:
+ ```
+ tosker sockshop.yml ls
+ ```
+
+4. Access the `http://localhost` in order view the `sockshop` web-based interface.
+
+<div style="text-align:center">
+  <img src="docs/img/sockshop.png" alt="Drawing" style="width: 600px" />
+</div>
+
 
 
 
