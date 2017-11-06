@@ -91,9 +91,6 @@ Local Volumes       19                  10                  2.106GB             
 ## Load of the system
 
 
-
-
-
  ## Additional features
  `SockShop` is equipped also with a `Locust.io` load testing, a `Zipkin` tracing.
 
