@@ -52,7 +52,7 @@ cd  TosKer/data/examples/sockshop
 </div>
 
 ### Sockshop application described with `tosKer`
-The architecture described with `tosKer.
+The architecture described with `tosKer`.
 
 
 <div style="text-align:center">
@@ -60,17 +60,12 @@ The architecture described with `tosKer.
 </div>
 
 
-### Test Toskeriser
+## Test Toskeriser
 
-## Disk space usage
+#### Disk space usage
 Docker permits knowing the disk space usage of the `images`, `containers`, and `volumes`.
 ```
 $ docker system df
-
-TYPE                TOTAL               ACTIVE              SIZE                RECLAIMABLE
-Images              0                   0                   0B                  0B
-Containers          0                   0                   0B                  0B
-Local Volumes       0                   0                   0B                  0B
 ```
 
 #### Docker compose disk usage
@@ -85,13 +80,15 @@ Local Volumes       9                   9                   966.4MB             
 ```
 
 
-### Toskeriser
+### Toskeriser  disk usage
+```
 
 Images              19                  13                  5.035GB             2.423GB (48%)
 Containers          14                  13                  131.1kB             0B (0%)
 Local Volumes       19                  10                  2.106GB             1.047GB (49%)
+```
 
-### Load of the system
+## Load of the system
 
 
 
@@ -99,7 +96,6 @@ Local Volumes       19                  10                  2.106GB             
 
  ## Additional features
  `SockShop` is equipped also with a `Locust.io` load testing, a `Zipkin` tracing.
-
 
  #### Locust
 
