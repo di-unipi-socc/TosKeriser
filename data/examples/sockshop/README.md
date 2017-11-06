@@ -48,10 +48,16 @@ cd  TosKer/data/examples/sockshop
 4. Access the `http://localhost` in order view the `sockshop` web-based interface.
 
 <div style="text-align:center">
-  <img src="docs/img/sockshop.png" alt="Drawing" style="width: 600px" />
+  <img src="docs/img/sockshop.png" alt="Drawing" style="width: 400px" />
 </div>
 
+### Sockshop application described with `tosKer`
+The architecture described with `tosKer.
 
+
+<div style="text-align:center">
+  <img src="docs/img/sockshop-tosker.jpg" alt="Drawing" style="width: 600px" />
+</div>
 
 
 ### Test Toskeriser
