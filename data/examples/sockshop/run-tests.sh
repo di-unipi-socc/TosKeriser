@@ -1,10 +1,9 @@
 #!/bin/bash
 ARGS=1         # Script requires 3 arguments.
 E_BADARGS=85   # Wrong number of arguments passed to script.
-
+SECS=10;
 now=$(date '+%d-%m-%Y_%H:%M:%S');
-PATH_LOGS="./logs/${now}_sockshop.log"
-echo $PATH_LOGS
+PATH_LOGS="./logs/${now}_memcpu.log"
 
 if [ $# -ne "$ARGS" ]
 then
@@ -16,8 +15,17 @@ SOCKSHOP_YAML=$1
 
 tosker $SOCKSHOP_YAML create start
 
+echo "Waiting ${SECS} seconds before running  docker stats command..."
+sleep ${SECS}s
 # add the stat into the logs about the CPU and memory used by all the container
-# watch -n
 docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}' >> "$PATH_LOGS"
+echo "Mem/CPU stats written in file $PATH_LOGS"
 
-echo "Stats written in file $PATH_LOGS"
+
+now=$(date '+%d-%m-%Y_%H:%M:%S');
+CSV_BASE_NAME="../logs/${now}_sockshop"
+cd locust && ./runLocust.sh -h 127.0.0.1 -r 40s -c 100 -l ${CSV_BASE_NAME}
+
+
+
+echo "Load stats written in file ${CSV_BASE_NAME}"

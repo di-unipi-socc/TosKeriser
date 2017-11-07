@@ -56,7 +56,7 @@ The architecture described with `tosKer`.
 
 
 <div style="text-align:center">
-  <img src="docs/img/sockshop-tosker.jpg" alt="Drawing" style="width: 600px" />
+  <img src="docs/img/sockshop-tosker.jpg" alt="Architecture" style="width: 600px" />
 </div>
 
 
