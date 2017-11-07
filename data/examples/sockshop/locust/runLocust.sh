@@ -97,7 +97,7 @@ while getopts ":d:h:c:r:l:" o; do
         ;;
     l)
         CSV_BASE_NAME=${OPTARG:-10}
-        echo $CSV_BASE_NAME
+        #echo $CSV_BASE_NAME
         ;;
     *)
         do_usage
