@@ -17,7 +17,7 @@ tosker $SOCKSHOP_YAML create start
 
 echo "Waiting ${SECS} seconds before running  docker stats command..."
 sleep ${SECS}s
-# add the stat into the logs about the CPU and memory used by all the container
+# add the stats into the logs about the CPU and memory used by all the container
 docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}' > "$PATH_LOGS"
 echo "Mem/CPU stats written in file $PATH_LOGS"
 
