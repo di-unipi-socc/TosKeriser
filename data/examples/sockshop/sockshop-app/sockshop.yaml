@@ -6,8 +6,8 @@ repositories:
   docker_hub: https://registry.hub.docker.com/
 
 imports:
-  # - tosker: https://di-unipi-socc.github.io/tosker-types/0.0.6/tosker.yaml
-  - tosker: tosker-types.yaml
+  - tosker: https://di-unipi-socc.github.io/tosker-types/tosker.yaml
+  #- tosker: tosker-types.yaml
 
 topology_template:
   inputs:
@@ -43,7 +43,7 @@ topology_template:
         - connection: catalogue
         - connection: user
         - connection: carts
-        # TODO: pass the endpoint in in env_variable (http://carts is the default endpoint)
+        # TODO: pass the endpoint in  env_variable (http://carts is the default endpoint)
         # https://github.com/microservices-demo/front-end/blob/master/api/endpoints.js)
         - connection: orders
         - connection: payment
@@ -120,7 +120,8 @@ topology_template:
           delete:
             implementation: scripts/carts/uninstall.sh
 
-   # INFORMATION: Closed connection [connectionId{localValue:42, serverValue:248}] to localhost:27017 because the pool has been closed.
+   # INFORMATION: Closed connection [connectionId{localValue:42, serverValue:248}]
+   # to localhost:27017 because the pool has been closed.
     orders:
       type: tosker.nodes.Software
       requirements:

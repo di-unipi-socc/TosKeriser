@@ -4,6 +4,6 @@ git clone  https://github.com/microservices-demo/orders.git
 
 cd \orders && mvn -DskipTests package
 
-cp target/orders.jar ../../artifacts
+cp target/orders.jar ../../sockershop-app/artifacts
 
 cd .. && rm -rf orders/
