@@ -1,9 +1,12 @@
 #!/bin/sh
+NAME=orders
 
-git clone  https://github.com/microservices-demo/orders.git
+abs_path=$(cd $(dirname $0) && pwd)
 
-cd \orders && mvn -DskipTests package
+git clone  https://github.com/microservices-demo/$NAME.git $abs_path/$NAME
 
-cp target/orders.jar ../../sockershop-app/artifacts
+cd $abs_path/$NAME
 
-cd .. && rm -rf orders/
+mvn -DskipTests package
+
+cp target/$NAME.jar $abs_path/../sockshop-app/artifacts && rm -rf $abs_path/$NAME
