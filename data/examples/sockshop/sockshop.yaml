@@ -135,8 +135,6 @@ topology_template:
         ordersjar: ./artifacts/orders.jar
       interfaces:
         Standard:
-          configure:
-            implementation: scripts/orders/configure.sh
           create:
             implementation: scripts/orders/install.sh
           start:

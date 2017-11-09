@@ -15,10 +15,15 @@ topology_template:
       type: integer
       default: 80
       description: Edger router external port
-    front-end_branch:
+    payment_endpoint:
       type: string
-      default: master
-      description: Branch of the sockershop front-end microservice
+      default: payment:81
+    catalogue_endpoint:
+      type: string
+      default: catalogue:82
+    user_endpoint:
+      type: string
+      default: user:83
 
   groups:
     group-go:
@@ -49,14 +54,21 @@ topology_template:
         # TODO: pass the endpoint in in env_variable (http://carts is the default endpoint)
         # https://github.com/microservices-demo/front-end/blob/master/api/endpoints.js)
         - connection: orders
-        - connection: payment
+        # - connection: payment
       interfaces:
         Standard:
           create:
             implementation: scripts/front-end/install.sh
             inputs:
               repo: https://github.com/microservices-demo/front-end.git
-              branch: { get_input: front-end_branch }
+              branch: master
+          configure:
+            implementation: scripts/front-end/configure.sh
+            inputs:
+              catalogue: { get_input: catalogue_endpoint }
+              carts: carts
+              user: { get_input: user_endpoint }
+              orders: order
           start:
             implementation: scripts/front-end/start.sh
           stop:
@@ -76,7 +88,7 @@ topology_template:
           start:
             implementation: scripts/catalogue/start.sh
             inputs:
-              port: 81
+              port: 82
           stop:
             implementation: scripts/catalogue/stop.sh
           delete:
@@ -98,7 +110,7 @@ topology_template:
             inputs:
               database: mongodb
               mongohost: user-db
-              port: 80
+              port: 83
           stop:
             implementation: scripts/user/stop.sh
           delete:
@@ -133,22 +145,23 @@ topology_template:
         - connection: orders-db
         - connection: zipkin
         - connection: shipping
-        - connection: carts
-        - connection: user
         - connection: payment
-      artifacts:
-        ordersjar: ./artifacts/orders.jar
+        # - connection: carts
+        # - connection: user
+      # artifacts:
+      #   ordersjar: ./artifacts/orders.jar
       interfaces:
         Standard:
-          configure:
-            implementation: scripts/orders/configure.sh
           create:
             implementation: scripts/orders/install.sh
+            inputs:
+              payment: { get_input: payment_endpoint }
+              shipping: shipping
           start:
             implementation: scripts/orders/start.sh
             inputs:
               port: 80
-              jar: { get_artifact: [SELF, ordersjar] }
+              # jar: { get_artifact: [SELF, ordersjar] }
           stop:
             implementation: scripts/orders/stop.sh
           delete:
@@ -167,7 +180,7 @@ topology_template:
           start:
             implementation: scripts/payment/start.sh
             inputs:
-              port: 80
+              port: 81
           stop:
             implementation: scripts/payment/stop.sh
           delete:
@@ -241,7 +254,7 @@ topology_template:
       type: tosker.nodes.Container
       artifacts:
         my_image:
-          file: weaveworksdemos/msd-java:8u131
+          file: maven
           type: tosker.artifacts.Image
           repository: docker_hub
     
