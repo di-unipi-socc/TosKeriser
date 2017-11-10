@@ -5,3 +5,5 @@
 export JAVA_OPTS=-Djava.security.egd=file:/dev/urandom
 
 java -jar /orders/target/orders.jar --port=$INPUT_PORT
+
+# java -jar $INPUT_JAR --port=$INPUT_PORT --shipping_endpoint=$INPUT_SHIPPING --payment_endpoint=$INPUT_PAYMENT

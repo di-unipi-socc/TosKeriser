@@ -68,7 +68,7 @@ topology_template:
               catalogue: { get_input: catalogue_endpoint }
               carts: carts
               user: { get_input: user_endpoint }
-              orders: order
+              orders: orders
           start:
             implementation: scripts/front-end/start.sh
           stop:
@@ -162,6 +162,8 @@ topology_template:
             inputs:
               port: 80
               # jar: { get_artifact: [SELF, ordersjar] }
+              # payment: { get_input: payment_endpoint }
+              # shipping: shipping
           stop:
             implementation: scripts/orders/stop.sh
           delete:

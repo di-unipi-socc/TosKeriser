@@ -1,11 +1,11 @@
 #!/bin/bash
+abs_path=$(cd $(dirname $0) && pwd)
 
 echo "Creating carts into /artifacts folder (carts.jar) ..."
-cd ./helpers
-source ./carts-build-jar.sh &> /dev/null
+$abs_path/helpers/carts-build-jar.sh &> /dev/null
 
 echo "Creating orders  into /artifacts folder (orders.jar) ..."
-source ./orders-build-jar.sh &> /dev/null
+$abs_path/helpers/orders-build-jar.sh &> /dev/null
 
 echo "Creating shipping  into /artifacts folder (shipping.jar) ..."
-source ./shipping-build-jar.sh &> /dev/null
+$abs_path/helpers/shipping-build-jar.sh &> /dev/null
