@@ -62,6 +62,12 @@ The architecture described with `tosKer`.
 
 ## Test Toskeriser
 
+|             | DockerCompose | tosKer | group_go | group_java |   |
+|-------------|---------------|--------|----------|------------|---|
+| mem         |               |        |          |            |   |
+| cpu         |               |        |          |            |   |
+| #containers |               |        |          |            |   |
+
 #### Disk space usage
 Docker permits knowing the disk space usage of the `images`, `containers`, and `volumes`.
 ```

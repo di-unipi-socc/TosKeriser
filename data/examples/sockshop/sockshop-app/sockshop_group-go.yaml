@@ -257,7 +257,7 @@ topology_template:
           file: maven
           type: tosker.artifacts.Image
           repository: docker_hub
-    
+
     # Databases
     orders-db:
       type: tosker.nodes.Container
@@ -316,18 +316,18 @@ topology_template:
         type: tosker.artifacts.Image.Service
         repository: docker_hub
 
-    queue-master:
-      type: tosker.nodes.Container
-      requirements:
-        - connection: rabbitmq
-      artifacts:
-        my_image:
-          file: weaveworksdemos/queue-master
-          type: tosker.artifacts.Image.Service
-          repository: docker_hub
-      properties:
-        share_data:
-          /var/run/docker.sock: /var/run/docker.sock
+    # queue-master:
+    #   type: tosker.nodes.Container
+    #   requirements:
+    #     - connection: rabbitmq
+    #   artifacts:
+    #     my_image:
+    #       file: weaveworksdemos/queue-master
+    #       type: tosker.artifacts.Image.Service
+    #       repository: docker_hub
+    #   properties:
+    #     share_data:
+    #       /var/run/docker.sock: /var/run/docker.sock
 
     #
     # dbvolume:
