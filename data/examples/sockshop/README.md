@@ -143,6 +143,44 @@ Local Volumes       19                  10                  2.106GB             
 
   'http://127.0.0.1:9411'
 
+### Test memory
+
+```
+12 containers
+Usage :    357.9724392361111,
+Max usage: 391.9798177083333,
+Rss:       357.9724392361111,
+Total rss: 338.02810329861114
+```
+```
+12 containers
+Usage :357.1702473958333,
+Max usage:391.9922960069445,
+Rss:357.1702473958333,
+Total rss:337.99555121527777
+```
+```
+12 containers
+Usage :357.38650173611114,
+Max usage:392.2217881944445,
+Rss:357.38650173611114,
+Total rss:338.1826171875
+```
+
+docker-compose
+
+14 containers
+Usage :131.87779017857142,
+Max usage:146.23865327380952,
+Rss:131.87779017857142,
+Total rss:114.05645461309523
+
+
+14 containers
+Usage :149.73502604166666,
+Max usage:162.259765625,
+Rss:149.73502604166666,
+Total rss:131.61681547619048
 
 <!-- ## front-end
 
@@ -210,4 +248,3 @@ API.
         	Port to bind HTTP listener (default "8080")
       -zipkin string
         	Zipkin address -->
-```

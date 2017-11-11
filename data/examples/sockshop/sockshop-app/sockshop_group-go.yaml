@@ -146,8 +146,8 @@ topology_template:
         - connection: zipkin
         - connection: shipping
         - connection: payment
-        # - connection: carts
-        # - connection: user
+        - connection: carts
+        - connection: user
       # artifacts:
       #   ordersjar: ./artifacts/orders.jar
       interfaces:
