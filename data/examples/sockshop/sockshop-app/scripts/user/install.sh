@@ -12,5 +12,3 @@ go get -v github.com/Masterminds/glide
 cd src/github.com/microservices-demo/user
 glide install
 go install
-
-echo $HATEAOS

@@ -11,10 +11,10 @@ imports:
 
 topology_template:
   inputs:
-    edge-router_port:
+    port:
       type: integer
       default: 80
-      description: Edger router external port
+      description: Application external port
     payment_endpoint:
       type: string
       default: payment:81
@@ -37,7 +37,7 @@ topology_template:
         - connection: front-end
       properties:
         ports:
-          80: { get_input: edge-router_port }
+          80: { get_input: port }
       artifacts:
         my_image:
           file: weaveworksdemos/edge-router:latest
@@ -51,8 +51,6 @@ topology_template:
         - connection: catalogue
         - connection: user
         - connection: carts
-        # TODO: pass the endpoint in in env_variable (http://carts is the default endpoint)
-        # https://github.com/microservices-demo/front-end/blob/master/api/endpoints.js)
         - connection: orders
         # - connection: payment
       interfaces:
@@ -101,8 +99,6 @@ topology_template:
         - host: go-container
       interfaces:
         Standard:
-          configure:
-            implementation: scripts/user/configure.sh
           create:
             implementation: scripts/user/install.sh
           start:
@@ -175,8 +171,6 @@ topology_template:
         - host: go-container
       interfaces:
         Standard:
-          configure:
-            implementation: scripts/payment/configure.sh
           create:
             implementation: scripts/payment/install.sh
           start:
@@ -227,9 +221,6 @@ topology_template:
 
     go-container:
       type: tosker.nodes.Container
-      properties:
-        env_variable:
-          HATEAOS: user
       artifacts:
         my_image:
           file: golang:1.7

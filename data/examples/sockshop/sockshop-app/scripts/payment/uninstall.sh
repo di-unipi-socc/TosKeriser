@@ -1,2 +1,2 @@
-#!/bin/bash
-rm -rf /go/src/github.com/microservices-demo/payment
+#!/bin/sh
+rm -rf /app/payment /go/src/github.com/microservices-demo/payment

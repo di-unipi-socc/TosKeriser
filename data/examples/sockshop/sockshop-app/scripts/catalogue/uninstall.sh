@@ -1,3 +1,3 @@
-#!/bin/bash
+#!/bin/sh
 
-rm -fr /front-end
+rm -fr /app/catalogue /go/src/github.com/microservices-demo/catalogue /go/images

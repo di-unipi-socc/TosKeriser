@@ -1,3 +1,3 @@
-#!/bin/bash
+#!/bin/sh
 
-# rm -fr /carts
+rm -fr /orders
