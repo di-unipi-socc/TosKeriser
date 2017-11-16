@@ -1,6 +1,6 @@
 tosca_definitions_version: tosca_simple_yaml_1_0
 
-description: SockShop microservice-based demo application
+description: SockShop microservice-based  demo application
 
 repositories:
   docker_hub: https://registry.hub.docker.com/
@@ -16,18 +16,27 @@ topology_template:
       description: Application external port
     payment_endpoint:
       type: string
-      default: payment:81
+      default: payment
     catalogue_endpoint:
       type: string
-      default: catalogue:82
+      default: catalogue
     user_endpoint:
       type: string
-      default: user:83
+      default: user
+    carts_endpoint:
+      type: string
+      default: carts:81
+    orders_endpoint:
+      type: string
+      default: orders:82
+    shipping_endpoint:
+      type: string
+      default: shipping:83
 
   groups:
-    group-go:
+    group-java:
       type: tosker.groups.DeploymentUnit
-      members: [ catalogue, user, payment ]
+      members: [ carts, orders, shipping ]
 
   node_templates:
 # Software
@@ -39,7 +48,6 @@ topology_template:
         - connection: user
         - connection: carts
         - connection: orders
-        # - connection: payment
       interfaces:
         Standard:
           create:
@@ -51,9 +59,9 @@ topology_template:
             implementation: scripts/front-end/configure.sh
             inputs:
               catalogue: { get_input: catalogue_endpoint }
-              carts: carts
+              carts: { get_input: carts_endpoint }
               user: { get_input: user_endpoint }
-              orders: orders
+              orders: { get_input: orders_endpoint }
           start:
             implementation: scripts/front-end/start.sh
           stop:
@@ -64,7 +72,7 @@ topology_template:
     catalogue:
       type: tosker.nodes.Software
       requirements:
-        - host: go-container
+        - host: catalogue-go
         - connection: catalogue-db
       interfaces:
         Standard:
@@ -73,7 +81,7 @@ topology_template:
           start:
             implementation: scripts/catalogue/start.sh
             inputs:
-              port: 82
+              port: 80
           stop:
             implementation: scripts/catalogue/stop.sh
           delete:
@@ -83,7 +91,7 @@ topology_template:
       type: tosker.nodes.Software
       requirements:
         - connection: user-db
-        - host: go-container
+        - host: user-go
       interfaces:
         Standard:
           create:
@@ -93,7 +101,7 @@ topology_template:
             inputs:
               database: mongodb
               mongohost: user-db
-              port: 83
+              port: 80
           stop:
             implementation: scripts/user/stop.sh
           delete:
@@ -102,7 +110,7 @@ topology_template:
     carts:
       type: tosker.nodes.Software
       requirements:
-        - host: carts-java
+        - host: java-container
         - connection: carts-db
       artifacts:
         cartsjar: ./artifacts/carts.jar
@@ -113,8 +121,8 @@ topology_template:
           start:
             implementation: scripts/carts/start.sh
             inputs:
-              port: 80
-              jar: { get_artifact: [SELF, cartsjar] }
+              port: 81
+              jar: { get_artifact: [ SELF, cartsjar ] }
           stop:
             implementation: scripts/carts/stop.sh
           delete:
@@ -123,7 +131,7 @@ topology_template:
     orders:
       type: tosker.nodes.Software
       requirements:
-        - host: orders-java
+        - host: java-container
         - connection: orders-db
         - connection: zipkin
         - connection: shipping
@@ -136,11 +144,11 @@ topology_template:
             implementation: scripts/orders/install.sh
             inputs:
               payment: { get_input: payment_endpoint }
-              shipping: shipping
+              shipping: { get_input: shipping_endpoint }
           start:
             implementation: scripts/orders/start.sh
             inputs:
-              port: 80
+              port: 82
           stop:
             implementation: scripts/orders/stop.sh
           delete:
@@ -149,7 +157,7 @@ topology_template:
     payment:
       type: tosker.nodes.Software
       requirements:
-        - host: go-container
+        - host: payment-go
       interfaces:
         Standard:
           create:
@@ -157,7 +165,7 @@ topology_template:
           start:
             implementation: scripts/payment/start.sh
             inputs:
-              port: 81
+              port: 80
           stop:
             implementation: scripts/payment/stop.sh
           delete:
@@ -166,9 +174,9 @@ topology_template:
     shipping:
       type: tosker.nodes.Software
       requirements:
+        - host: java-container
         - connection: rabbitmq
         - connection: zipkin
-        - host: shipping-java
       artifacts:
         shippingjar: ./artifacts/shipping.jar
       interfaces:
@@ -178,24 +186,23 @@ topology_template:
           start:
             implementation: scripts/shipping/start.sh
             inputs:
-              port: 80
-              jar: { get_artifact: [SELF, shippingjar] }
+              port: 83
+              jar: { get_artifact: [ SELF, shippingjar ] }
           stop:
             implementation: scripts/shipping/stop.sh
           delete:
             implementation: scripts/shipping/uninstall.sh
 
-
 # Envarioments
-    front-end-node:
+    java-container:
       type: tosker.nodes.Container
       artifacts:
         my_image:
-          file: node:4.8
+          file: maven
           type: tosker.artifacts.Image
           repository: docker_hub
 
-    go-container:
+    payment-go:
       type: tosker.nodes.Container
       artifacts:
         my_image:
@@ -203,27 +210,30 @@ topology_template:
           type: tosker.artifacts.Image
           repository: docker_hub
 
-    shipping-java:
+    user-go:
       type: tosker.nodes.Container
+      properties:
+        env_variable:
+          HATEAOS: user
       artifacts:
         my_image:
-          file: maven:3.2-jdk-8
+          file: golang:1.7
           type: tosker.artifacts.Image
           repository: docker_hub
 
-    carts-java:
+    catalogue-go:
       type: tosker.nodes.Container
       artifacts:
         my_image:
-          file: maven:3.2-jdk-8
+          file: golang:1.7
           type: tosker.artifacts.Image
           repository: docker_hub
 
-    orders-java:
+    front-end-node:
       type: tosker.nodes.Container
       artifacts:
         my_image:
-          file: maven:3.2-jdk-8
+          file: node:4.8
           type: tosker.artifacts.Image
           repository: docker_hub
 
