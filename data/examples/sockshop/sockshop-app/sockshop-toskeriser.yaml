@@ -6,8 +6,8 @@ repositories:
   docker_hub: https://registry.hub.docker.com/
 
 imports:
-  # - tosker: https://di-unipi-socc.github.io/tosker-types/0.0.6/tosker.yaml
-  - tosker: tosker-types.yaml
+  - tosker: https://di-unipi-socc.github.io/tosker-types/tosker.yaml
+  # - tosker: tosker-types.yaml
 
 topology_template:
   inputs:
@@ -22,7 +22,6 @@ topology_template:
 
 
   node_templates:
-
     edge-router:
       type: tosker.nodes.Container
       requirements:
@@ -40,12 +39,11 @@ topology_template:
       type: tosker.nodes.Software
       requirements:
         - host:   #  front-end-node
-          node_filter:
-            properties:
-              - supported_sw:
-                - npm: 2.15.x
-                - node: 4.x
-
+            node_filter:
+              properties:
+                - supported_sw:
+                  - npm: 2.15.x
+                  - node: 4.x
         - connection: catalogue
         - connection: user
         - connection: carts
