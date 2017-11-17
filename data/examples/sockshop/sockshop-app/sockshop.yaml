@@ -127,7 +127,6 @@ topology_template:
         - connection: payment
         - connection: carts
         - connection: user
-        # - connection: zipkin
       interfaces:
         Standard:
           create:
@@ -166,7 +165,6 @@ topology_template:
       requirements:
         - host: shipping-java
         - connection: rabbitmq
-        # - connection: zipkin
       artifacts:
         jar: artifacts/shipping.jar
       interfaces:

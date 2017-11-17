@@ -1,13 +1,12 @@
 tosca_definitions_version: tosca_simple_yaml_1_0
 
-description: SockShop microservice-based  demo application
+description: SockShop microservice-based demo application
 
 repositories:
   docker_hub: https://registry.hub.docker.com/
 
 imports:
   - tosker: https://di-unipi-socc.github.io/tosker-types/tosker.yaml
-  #- tosker: tosker-types.yaml
 
 topology_template:
   inputs:
@@ -17,56 +16,52 @@ topology_template:
       description: Application external port
     payment_endpoint:
       type: string
-      default: payment:80
-    user_endpoint:
-      type: string
-      default: user:80
+      default: payment
     catalogue_endpoint:
       type: string
-      default: catalogue:80
+      default: catalogue
+    user_endpoint:
+      type: string
+      default: user
+    carts_endpoint:
+      type: string
+      default: carts
+    orders_endpoint:
+      type: string
+      default: orders
+    shipping_endpoint:
+      type: string
+      default: shipping
 
   node_templates:
-    edge-router:
-      type: tosker.nodes.Container
-      requirements:
-        - connection: front-end
-      properties:
-        ports:
-          80: { get_input: port }
-      artifacts:
-        my_image:
-          file: weaveworksdemos/edge-router:latest
-          type: tosker.artifacts.Image.Service
-          repository: docker_hub
-
+# Software
     front-end:
       type: tosker.nodes.Software
       requirements:
-        - host: #front-end-node
+        - host:
             node_filter:
               properties:
-                - supported_sw:
-                  - npm: 2.15.x
-                  - node: 4.x
+              - supported_sw:
+                - npm: 2.15.x
+                - node: 4.x
+                - git: x
         - connection: catalogue
         - connection: user
         - connection: carts
         - connection: orders
-        # - connection: payment
       interfaces:
         Standard:
           create:
             implementation: scripts/front-end/install.sh
             inputs:
               repo: https://github.com/microservices-demo/front-end.git
-              branch: master
           configure:
             implementation: scripts/front-end/configure.sh
             inputs:
               catalogue: { get_input: catalogue_endpoint }
-              carts: carts
+              carts: { get_input: carts_endpoint }
               user: { get_input: user_endpoint }
-              orders: orders
+              orders: { get_input: orders_endpoint }
           start:
             implementation: scripts/front-end/start.sh
           stop:
@@ -77,12 +72,12 @@ topology_template:
     catalogue:
       type: tosker.nodes.Software
       requirements:
-        - host: #catalogue-go
+        - host:
             node_filter:
               properties:
                 - supported_sw:
                   - go: 1.7.x
-                  - git: 2.x
+                  - git: x
         - connection: catalogue-db
       interfaces:
         Standard:
@@ -100,13 +95,13 @@ topology_template:
     user:
       type: tosker.nodes.Software
       requirements:
-        - connection: user-db
-        - host: #user-go
+        - host:
             node_filter:
               properties:
-                - supported_sw:
-                  - go: 1.7.x
-                  - git: 2.x
+              - supported_sw:
+                - go: 1.7.x
+                - git: x
+        - connection: user-db
       interfaces:
         Standard:
           create:
@@ -125,76 +120,66 @@ topology_template:
     carts:
       type: tosker.nodes.Software
       requirements:
-        - host: #carts-java
+        - host:
             node_filter:
               properties:
-                - supported_sw:
-                  - go: 1.7.x
-                  - git: 2.x
+              - supported_sw:
+                - mvn: 3.x
+                - java: 1.8.x
+                - git: x
         - connection: carts-db
       artifacts:
-        cartsjar: ./artifacts/carts.jar
+        jar: artifacts/carts.jar
       interfaces:
         Standard:
-          create:
-            implementation: scripts/carts/install.sh
           start:
             implementation: scripts/carts/start.sh
             inputs:
               port: 80
-              jar: { get_artifact: [SELF, cartsjar] }
+              jar: { get_artifact: [ SELF, jar ] }
           stop:
             implementation: scripts/carts/stop.sh
-          delete:
-            implementation: scripts/carts/uninstall.sh
 
     orders:
       type: tosker.nodes.Software
       requirements:
-        - host: orders-java
+        - host:
+            node_filter:
+              properties:
+              - supported_sw:
+                - mvn: 3.x
+                - java: 1.8.x
+                - git: x
         - connection: orders-db
-        - connection: zipkin
         - connection: shipping
         - connection: payment
         - connection: carts
         - connection: user
-      # artifacts:
-      #   ordersjar: ./artifacts/orders.jar
       interfaces:
         Standard:
           create:
             implementation: scripts/orders/install.sh
             inputs:
               payment: { get_input: payment_endpoint }
-              shipping: shipping
+              shipping: { get_input: shipping_endpoint }
           start:
             implementation: scripts/orders/start.sh
             inputs:
               port: 80
-              # jar: { get_artifact: [SELF, ordersjar] }
           stop:
             implementation: scripts/orders/stop.sh
           delete:
             implementation: scripts/orders/uninstall.sh
-    orders-java:
-      type: tosker.nodes.Container
-      artifacts:
-        my_image:
-          file: maven
-          # file: weaveworksdemos/msd-java:8u131
-          type: tosker.artifacts.Image
-          repository: docker_hub
 
     payment:
       type: tosker.nodes.Software
       requirements:
-        - host: # payment-go
+        - host:
             node_filter:
               properties:
-                - supported_sw:
-                  - go: 1.7.x
-                  - git: 2.x
-
+              - supported_sw:
+                - go: 1.7.x
+                - git: x
       interfaces:
         Standard:
           create:
@@ -208,77 +193,31 @@ topology_template:
           delete:
             implementation: scripts/payment/uninstall.sh
 
-    # POST /orders return 500 error if shipping is not running
     shipping:
       type: tosker.nodes.Software
       requirements:
+        - host:
+            node_filter:
+              properties:
+              - supported_sw:
+                - mvn: 3.x
+                - java: 1.8.x
+                - git: x
         - connection: rabbitmq
-        - connection: zipkin
-        - host: shipping-java
       artifacts:
-        shippingjar: ./artifacts/shipping.jar
+        jar: artifacts/shipping.jar
       interfaces:
         Standard:
-          configure:
-            implementation: scripts/shipping/configure.sh
-          create:
-            implementation: scripts/shipping/install.sh
           start:
             implementation: scripts/shipping/start.sh
             inputs:
               port: 80
-              jar: { get_artifact: [SELF, shippingjar] }
+              jar: { get_artifact: [ SELF, jar ] }
           stop:
             implementation: scripts/shipping/stop.sh
-          delete:
-            implementation: scripts/shipping/uninstall.sh
 
-    shipping-java:
-      type: tosker.nodes.Container
-      properties:
-        env_variable:
-          JAVA_OPTS: -Djava.security.egd=file:/dev/urandom"
-      artifacts:
-        my_image:
-          file: weaveworksdemos/msd-java:latest
-          type: tosker.artifacts.Image
-          repository: docker_hub
 
-    rabbitmq:
-      type: tosker.nodes.Container
-      artifacts:
-       my_image:
-        file:  rabbitmq:3.6.8
-        type: tosker.artifacts.Image.Service
-        repository: docker_hub
-
-    payment-go:
-      type: tosker.nodes.Container
-      artifacts:
-        my_image:
-          file: golang:1.7
-          type: tosker.artifacts.Image
-          repository: docker_hub
-
-    user-go:
-      type: tosker.nodes.Container
-      properties:
-        env_variable:
-          HATEAOS: user
-      artifacts:
-        my_image:
-          file: golang:1.7
-          type: tosker.artifacts.Image
-          repository: docker_hub
-
-    carts-java:
-      type: tosker.nodes.Container
-      artifacts:
-        my_image:
-          file: maven:3.2-jdk-8
-          type: tosker.artifacts.Image
-          repository: docker_hub
-
+# Databases
     orders-db:
       type: tosker.nodes.Container
       artifacts:
@@ -305,56 +244,36 @@ topology_template:
 
     catalogue-db:
       type: tosker.nodes.Container
-      artifacts:
-        my_image:
-          file: weaveworksdemos/catalogue-db
-          type: tosker.artifacts.Image.Service
-          repository: docker_hub
       properties:
         env_variable:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_ALLOW_EMPTY_PASSWORD: true
           MYSQL_DATABASE: socksdb
-
-    front-end-node:
-      type: tosker.nodes.Container
       artifacts:
         my_image:
-          file: node:4.8
-          type: tosker.artifacts.Image
-          repository: docker_hub
-
-    catalogue-go:
-      type: tosker.nodes.Container
-      artifacts:
-        my_image:
-          file: golang:1.7
-          type: tosker.artifacts.Image
-          repository: docker_hub
-    # other images
-    zipkin:
-      type: tosker.nodes.Container
-      artifacts:
-        my_image:
-          file: openzipkin/zipkin
+          file: weaveworksdemos/catalogue-db
           type: tosker.artifacts.Image.Service
           repository: docker_hub
+
+
+# Other images
+    edge-router:
+      type: tosker.nodes.Container
+      requirements:
+        - connection: front-end
       properties:
         ports:
-          9411: 9411
+          80: { get_input: port }
+      artifacts:
+        my_image:
+          file: weaveworksdemos/edge-router:latest
+          type: tosker.artifacts.Image.Service
+          repository: docker_hub
 
-    # queue-master:
-    #   type: tosker.nodes.Container
-    #   requirements:
-    #     - connection: rabbitmq
-    #     artifacts:
-    #       my_image:
-    #         file: weaveworksdemos/queue-master
-    #         type: tosker.artifacts.Image.Service
-    #         repository: docker_hub
-    #         properties:
-    #           share_data:
-    #             /var/run/docker.sock: /var/run/docker.sock
-    #
-    # dbvolume:
-    #   type: tosker.nodes.Volume
+    rabbitmq:
+      type: tosker.nodes.Container
+      artifacts:
+       my_image:
+        file:  rabbitmq:3.6.8
+        type: tosker.artifacts.Image.Service
+        repository: docker_hub
