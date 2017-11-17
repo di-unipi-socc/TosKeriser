@@ -129,8 +129,7 @@ topology_template:
             node_filter:
               properties:
                 - supported_sw:
-                  - go: 1.7.x
-                  - git: 2.x
+                  - java: 1.8.x
         - connection: carts-db
       artifacts:
         cartsjar: ./artifacts/carts.jar
@@ -151,7 +150,13 @@ topology_template:
     orders:
       type: tosker.nodes.Software
       requirements:
-        - host: orders-java
+        - host: #orders-java
+            node_filter:
+              properties:
+                - supported_sw:
+                  - java: 1.8.x
+                  - mvn: 3.3.x
+                  - git: 2.x
         - connection: orders-db
         - connection: zipkin
         - connection: shipping

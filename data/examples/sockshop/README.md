@@ -60,38 +60,10 @@ The architecture described with `tosKer`.
 </div>
 
 
-## Test Toskeriser
-
-|             | DockerCompose | tosKer | group_go | group_java |   |
-|-------------|---------------|--------|----------|------------|---|
-| mem         |               |        |          |            |   |
-| cpu         |               |        |          |            |   |
-| #containers |               |        |          |            |   |
-
 #### Disk space usage
 Docker permits knowing the disk space usage of the `images`, `containers`, and `volumes`.
 ```
 $ docker system df
-```
-
-#### Docker compose disk usage
-
-```
-$ docker-compose up
-$ docker system df
-TYPE                TOTAL               ACTIVE              SIZE                RECLAIMABLE
-Images              13                  13                  2.193GB             150.7MB (6%)
-Containers          14                  14                  0B                  0B
-Local Volumes       9                   9                   966.4MB             0B (0%)
-```
-
-
-### Toskeriser  disk usage
-```
-
-Images              19                  13                  5.035GB             2.423GB (48%)
-Containers          14                  13                  131.1kB             0B (0%)
-Local Volumes       19                  10                  2.106GB             1.047GB (49%)
 ```
 
 ## Load of the system
@@ -145,6 +117,45 @@ Local Volumes       19                  10                  2.106GB             
 
 ### Test memory
 
+|                  | docker-compose | tosker      | tosker_go_group   | java-group |   |
+|------------------|----------------|-------------|------------|------------|---|
+| # containers     | 14             | 14          | 12         |            |   |
+| memory_usage     | 149.73 MiB     | 273.356 MiB | 357.38 MiB |            |   |
+| memory_max_usage | 162.259 MiB    | 298.51 MiB  | 392.22 MiB |            |   |
+| memory_rss       | 149.73 MiB     | 260.84 MiB  | 357.38 MiB |            |   |
+| memory_total_rss | 131.61 MiB     | 260.84 MiB  | 338.18 MiB |            |   |
+
+Max container usage:
+- docker-compose: queue-master
+- tosker: /sockshop.carts-java usage:999.7
+- tosker-go-groups:
+
+### Tosker
+14 containers
+Usage :273.3563988095238,
+Max usage:298.2819010416667,
+Rss:262.77762276785717,
+Total rss:262.77762276785717
+Max containers:
+ name /sockshop.carts-java usage:1009.1041666666666,
+ name /sockshop.carts-java Max usage:1032.7734375,Name /sockshop.carts-java  Rss:970.75390625,
+ Name /sockshop.carts-java Total rss:970.75390625
+
+
+14 containers
+Usage :269.30385044642856,
+Max usage:298.51395089285717,
+Rss:260.84542410714283,
+Total rss:260.84542410714283
+Max containers:
+ name /sockshop.carts-java usage:999.7526041666666,
+ name /sockshop.carts-java Max usage:1032.7734375,Name /sockshop.carts-java  Rss:969.2552083333334,
+ Name /sockshop.carts-java Total rss:969.2552083333334
+
+
+
+#### Tosker go group
+
 ```
 12 containers
 Usage :    357.9724392361111,
@@ -167,7 +178,7 @@ Rss:357.38650173611114,
 Total rss:338.1826171875
 ```
 
-docker-compose
+### docker-compose
 
 14 containers
 Usage :131.87779017857142,
@@ -181,6 +192,23 @@ Usage :149.73502604166666,
 Max usage:162.259765625,
 Rss:149.73502604166666,
 Total rss:131.61681547619048
+
+14 containers
+Usage :155.45405505952382,
+Max usage:180.12509300595238,
+Rss:155.45405505952382,
+Total rss:132.86058407738093
+
+14 containers
+Usage :158.873046875,
+Max usage:183.41517857142858,
+Rss:136.27008928571428,
+Total rss:136.27008928571428
+Max containers:
+ name /sockshopapp_queue-master_1 usage:594.6197916666666,
+ name /sockshopapp_queue-master_1 Max usage:610.5703125,Name /sockshopapp_queue-master_1  Rss:575.6627604166666,
+ Name /sockshopapp_queue-master_1 Total rss:575.6627604166666
+
 
 <!-- ## front-end
 

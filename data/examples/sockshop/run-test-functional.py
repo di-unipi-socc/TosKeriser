@@ -8,12 +8,15 @@ import numpy
 client = docker.APIClient(base_url='unix://var/run/docker.sock')
 
 
-# def mem_stats(container_id):
-#     docker_stats = client.stats(
-#         container_id, decode=True, stream=False)
-#         retyun
-#     stats_average[c_id] = {"usage": [],
-#                            "max_usage": [], "rss": [], "total_rss": []}
+def mem_stats(container_id):
+    docker_stats = client.stats(container_id, decode=True, stream=False)
+    mem_stats = docker_stats['memory_stats']
+    wanted_keys = ['usage', 'max_usage']
+    container_mem_stats = dict(
+        (k, mem_stats[k]) for k in wanted_keys if k in mem_stats.keys())
+    # ['stats']['rss']
+    container_mem_stats['name'] = docker_stats['name']
+    return container_mem_stats
 
 
 def collect_stats(sockshop_containers, ntimes=1):
@@ -90,10 +93,6 @@ def collect_stats(sockshop_containers, ntimes=1):
         stats_average[container_usage]['name'], stats_average[container_usage]["avg_total_rss"] / 1024 / 1024
     ))
 
-    print("All:")
-    print(stats_average)
-
-
     # '{p[first]} {p[last]}'.format(p=person)
 
 
@@ -114,11 +113,13 @@ for tosker_file in glob.glob("*.yaml"):
 sockshop_containers = [container['Id'] for container in client.containers(
 ) if "sockshop" in container['Names'][0]]
 
-collect_stats(sockshop_containers, ntimes=3)
+# collect_stats(sockshop_containers, ntimes=3)
+for i in map(mem_stats, sockshop_containers):
+    print(i)
 
 
 # client.stats(client.containers()[0]['Id'], stream=False)['memory_stats']
-#memory_stats :{
+# memory_stats :{
 #     'limit': 8274780160,
 #     'max_usage': 634081280,
 #     'usage': 598896640
