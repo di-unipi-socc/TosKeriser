@@ -1,3 +1,3 @@
 #!/bin/sh
 
-/app/catalogue -port=$INPUT_PORT
+cd /go && /app/catalogue -port=$INPUT_PORT

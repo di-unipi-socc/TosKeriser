@@ -7,7 +7,7 @@ repositories:
 
 imports:
   - tosker: https://di-unipi-socc.github.io/tosker-types/tosker.yaml
-  # - tosker: tosker-types.yaml
+  #- tosker: tosker-types.yaml
 
 topology_template:
   inputs:
@@ -17,18 +17,13 @@ topology_template:
       description: Application external port
     payment_endpoint:
       type: string
-      default: payment:81
-    catalogue_endpoint:
-      type: string
-      default: catalogue:82
+      default: payment:80
     user_endpoint:
       type: string
-      default: user:83
-
-  groups:
-    group-go:
-      type: tosker.groups.DeploymentUnit
-      members: [ catalogue, user, payment ]
+      default: user:80
+    catalogue_endpoint:
+      type: string
+      default: catalogue:80
 
   node_templates:
     edge-router:
@@ -47,7 +42,12 @@ topology_template:
     front-end:
       type: tosker.nodes.Software
       requirements:
-        - host: front-end-node
+        - host: #front-end-node
+            node_filter:
+              properties:
+                - supported_sw:
+                  - npm: 2.15.x
+                  - node: 4.x
         - connection: catalogue
         - connection: user
         - connection: carts
@@ -77,7 +77,12 @@ topology_template:
     catalogue:
       type: tosker.nodes.Software
       requirements:
-        - host: go-container
+        - host: #catalogue-go
+            node_filter:
+              properties:
+                - supported_sw:
+                  - go: 1.7.x
+                  - git: 2.x
         - connection: catalogue-db
       interfaces:
         Standard:
@@ -86,7 +91,7 @@ topology_template:
           start:
             implementation: scripts/catalogue/start.sh
             inputs:
-              port: 82
+              port: 80
           stop:
             implementation: scripts/catalogue/stop.sh
           delete:
@@ -96,7 +101,12 @@ topology_template:
       type: tosker.nodes.Software
       requirements:
         - connection: user-db
-        - host: go-container
+        - host: #user-go
+            node_filter:
+              properties:
+                - supported_sw:
+                  - go: 1.7.x
+                  - git: 2.x
       interfaces:
         Standard:
           create:
@@ -106,7 +116,7 @@ topology_template:
             inputs:
               database: mongodb
               mongohost: user-db
-              port: 83
+              port: 80
           stop:
             implementation: scripts/user/stop.sh
           delete:
@@ -115,7 +125,12 @@ topology_template:
     carts:
       type: tosker.nodes.Software
       requirements:
-        - host: carts-java
+        - host: #carts-java
+            node_filter:
+              properties:
+                - supported_sw:
+                  - go: 1.7.x
+                  - git: 2.x
         - connection: carts-db
       artifacts:
         cartsjar: ./artifacts/carts.jar
@@ -133,7 +148,6 @@ topology_template:
           delete:
             implementation: scripts/carts/uninstall.sh
 
-   # INFORMATION: Closed connection [connectionId{localValue:42, serverValue:248}] to localhost:27017 because the pool has been closed.
     orders:
       type: tosker.nodes.Software
       requirements:
@@ -158,17 +172,29 @@ topology_template:
             inputs:
               port: 80
               # jar: { get_artifact: [SELF, ordersjar] }
-              # payment: { get_input: payment_endpoint }
-              # shipping: shipping
           stop:
             implementation: scripts/orders/stop.sh
           delete:
             implementation: scripts/orders/uninstall.sh
+    orders-java:
+      type: tosker.nodes.Container
+      artifacts:
+        my_image:
+          file: maven
+          # file: weaveworksdemos/msd-java:8u131
+          type: tosker.artifacts.Image
+          repository: docker_hub
 
     payment:
       type: tosker.nodes.Software
       requirements:
-        - host: go-container
+        - host: # payment-go
+            node_filter:
+              properties:
+                - supported_sw:
+                  - go: 1.7.x
+                  - git: 2.x
+
       interfaces:
         Standard:
           create:
@@ -176,7 +202,7 @@ topology_template:
           start:
             implementation: scripts/payment/start.sh
             inputs:
-              port: 81
+              port: 80
           stop:
             implementation: scripts/payment/stop.sh
           delete:
@@ -207,7 +233,6 @@ topology_template:
           delete:
             implementation: scripts/shipping/uninstall.sh
 
-    # Envarioments
     shipping-java:
       type: tosker.nodes.Container
       properties:
@@ -219,8 +244,27 @@ topology_template:
           type: tosker.artifacts.Image
           repository: docker_hub
 
-    go-container:
+    rabbitmq:
       type: tosker.nodes.Container
+      artifacts:
+       my_image:
+        file:  rabbitmq:3.6.8
+        type: tosker.artifacts.Image.Service
+        repository: docker_hub
+
+    payment-go:
+      type: tosker.nodes.Container
+      artifacts:
+        my_image:
+          file: golang:1.7
+          type: tosker.artifacts.Image
+          repository: docker_hub
+
+    user-go:
+      type: tosker.nodes.Container
+      properties:
+        env_variable:
+          HATEAOS: user
       artifacts:
         my_image:
           file: golang:1.7
@@ -235,23 +279,6 @@ topology_template:
           type: tosker.artifacts.Image
           repository: docker_hub
 
-    front-end-node:
-      type: tosker.nodes.Container
-      artifacts:
-        my_image:
-          file: node:4.8
-          type: tosker.artifacts.Image
-          repository: docker_hub
-
-    orders-java:
-      type: tosker.nodes.Container
-      artifacts:
-        my_image:
-          file: maven
-          type: tosker.artifacts.Image
-          repository: docker_hub
-
-    # Databases
     orders-db:
       type: tosker.nodes.Container
       artifacts:
@@ -289,7 +316,22 @@ topology_template:
           MYSQL_ALLOW_EMPTY_PASSWORD: true
           MYSQL_DATABASE: socksdb
 
-    # Other images
+    front-end-node:
+      type: tosker.nodes.Container
+      artifacts:
+        my_image:
+          file: node:4.8
+          type: tosker.artifacts.Image
+          repository: docker_hub
+
+    catalogue-go:
+      type: tosker.nodes.Container
+      artifacts:
+        my_image:
+          file: golang:1.7
+          type: tosker.artifacts.Image
+          repository: docker_hub
+    # other images
     zipkin:
       type: tosker.nodes.Container
       artifacts:
@@ -301,27 +343,18 @@ topology_template:
         ports:
           9411: 9411
 
-    rabbitmq:
-      type: tosker.nodes.Container
-      artifacts:
-       my_image:
-        file:  rabbitmq:3.6.8
-        type: tosker.artifacts.Image.Service
-        repository: docker_hub
-
     # queue-master:
     #   type: tosker.nodes.Container
     #   requirements:
     #     - connection: rabbitmq
-    #   artifacts:
-    #     my_image:
-    #       file: weaveworksdemos/queue-master
-    #       type: tosker.artifacts.Image.Service
-    #       repository: docker_hub
-    #   properties:
-    #     share_data:
-    #       /var/run/docker.sock: /var/run/docker.sock
-
+    #     artifacts:
+    #       my_image:
+    #         file: weaveworksdemos/queue-master
+    #         type: tosker.artifacts.Image.Service
+    #         repository: docker_hub
+    #         properties:
+    #           share_data:
+    #             /var/run/docker.sock: /var/run/docker.sock
     #
     # dbvolume:
     #   type: tosker.nodes.Volume

@@ -5,7 +5,6 @@
 # cd  ./src/github.com/microservices-demo/user
 # // make build
 
-
 # golang:1.7-alpine
 go get -u github.com/microservices-demo/user
 go get -v github.com/Masterminds/glide
