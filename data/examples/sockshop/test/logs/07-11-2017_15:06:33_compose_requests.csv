@@ -1,0 +1,19 @@
+"Method","Name","# requests","# failures","Median response time","Average response time","Min response time","Max response time","Average Content Size","Requests/s"
+"GET","/",355,0,190,250,6,820,8688,12.01
+"GET","/basket.html",327,0,92,134,6,492,23020,11.06
+"DELETE","/cart",337,0,290,333,18,2019,0,11.40
+"POST","/cart",293,34,480,666,28,2641,0,9.91
+"GET","/catalogue",365,0,240,302,12,933,2795,12.35
+"GET","/category.html",343,0,170,198,6,704,11518,11.60
+"GET","/detail.html?id=03fef6ac-1896-4ce8-bd69-b798f85c6e0b",49,0,170,184,8,599,10364,1.66
+"GET","/detail.html?id=3395a43e-2d88-40de-b95f-e00e1502085b",24,0,140,191,13,554,10364,0.81
+"GET","/detail.html?id=510a0d7e-8e83-4193-b483-e27e09ddc34d",42,0,200,218,12,507,10364,1.42
+"GET","/detail.html?id=808a2de1-1aaa-4c25-a9b9-6612e8f29a38",32,0,170,203,8,577,10364,1.08
+"GET","/detail.html?id=819e1fbf-8b7e-4f6d-811f-693534916a8b",34,0,180,177,15,440,10364,1.15
+"GET","/detail.html?id=837ab141-399e-4c1f-9abc-bace40296bac",36,0,250,223,6,530,10364,1.22
+"GET","/detail.html?id=a0a4f044-b040-410d-8ead-4de0446aec7e",43,0,160,198,20,589,10364,1.45
+"GET","/detail.html?id=d3588630-ad8e-49df-bbd7-3167f7efb246",36,0,140,191,8,464,10364,1.22
+"GET","/detail.html?id=zzz4f044-b040-410d-8ead-4de0446aec7e",47,0,170,197,13,565,10364,1.59
+"GET","/login",343,0,490,536,61,1415,13,11.60
+"POST","/orders",279,89,6400,7157,906,14698,645,9.44
+"None","Total",2985,123,260,960,6,14698,6473,100.98

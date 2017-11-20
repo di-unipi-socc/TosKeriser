@@ -1,0 +1,15 @@
+NAME                      CPU %               MEM USAGE / LIMIT     MEM %
+sockshop_queue-master_1   0.11%               553.6MiB / 7.706GiB   7.02%
+sockshop_orders-db_1      0.49%               29.87MiB / 7.706GiB   0.38%
+sockshop_shipping_1       0.11%               274.6MiB / 7.706GiB   3.48%
+sockshop_rabbitmq_1       0.13%               66.58MiB / 7.706GiB   0.84%
+sockshop_edge-router_1    0.02%               8.785MiB / 7.706GiB   0.11%
+sockshop_carts_1          0.11%               286MiB / 7.706GiB     3.62%
+sockshop_user_1           0.00%               2.809MiB / 7.706GiB   0.04%
+sockshop_orders_1         0.12%               278.8MiB / 7.706GiB   3.53%
+sockshop_catalogue-db_1   0.05%               182.9MiB / 7.706GiB   2.32%
+sockshop_payment_1        0.00%               1.68MiB / 7.706GiB    0.02%
+sockshop_catalogue_1      0.00%               1.891MiB / 7.706GiB   0.02%
+sockshop_carts-db_1       0.44%               33.82MiB / 7.706GiB   0.43%
+sockshop_user-db_1        0.50%               31.79MiB / 7.706GiB   0.40%
+sockshop_front-end_1      0.08%               68.77MiB / 7.706GiB   0.87%

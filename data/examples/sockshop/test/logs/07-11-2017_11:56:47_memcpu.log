@@ -1,0 +1,16 @@
+NAME                      CPU %               MEM USAGE / LIMIT     MEM %
+sockshop.front-end-node   0.00%               94.72MiB / 7.706GiB   1.20%
+sockshop.catalogue-go     0.00%               4.012MiB / 7.706GiB   0.05%
+sockshop.orders-java      0.09%               559.6MiB / 7.706GiB   7.09%
+sockshop.user-go          0.00%               9.512MiB / 7.706GiB   0.12%
+sockshop.carts-java       0.09%               422.4MiB / 7.706GiB   5.35%
+sockshop.shipping-java    0.07%               710.8MiB / 7.706GiB   9.01%
+sockshop.payment-go       0.00%               2.902MiB / 7.706GiB   0.04%
+sockshop.edge-router      0.01%               8.258MiB / 7.706GiB   0.10%
+sockshop.queue-master     0.09%               786.7MiB / 7.706GiB   9.97%
+sockshop.catalogue-db     0.06%               224.8MiB / 7.706GiB   2.85%
+sockshop.user-db          0.32%               19.16MiB / 7.706GiB   0.24%
+sockshop.carts-db         0.58%               44.61MiB / 7.706GiB   0.57%
+sockshop.rabbitmq         0.59%               41.03MiB / 7.706GiB   0.52%
+sockshop.zipkin           0.07%               1.005GiB / 7.706GiB   13.03%
+sockshop.orders-db        0.43%               52.8MiB / 7.706GiB    0.67%
