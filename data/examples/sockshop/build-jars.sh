@@ -1,6 +1,8 @@
 #!/bin/bash
 abs_path=$(cd $(dirname $0) && pwd)
 
+# Builds the  jar file of the  "carts", "orders" and  "shipping" microservices..
+
 echo "Creating carts into /artifacts folder (carts.jar) ..."
 $abs_path/helpers/carts-build-jar.sh &> /dev/null
 

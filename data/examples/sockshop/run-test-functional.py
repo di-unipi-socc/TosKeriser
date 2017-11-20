@@ -7,6 +7,8 @@ import numpy
 
 client = docker.APIClient(base_url='unix://var/run/docker.sock')
 
+# try o build a functional version of the run-test script
+
 
 def mem_stats(container_id):
     docker_stats = client.stats(container_id, decode=True, stream=False)
