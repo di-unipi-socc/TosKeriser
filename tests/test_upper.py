@@ -140,10 +140,15 @@ class TestUpper(TestCase):
         if isinstance(a, list) and isinstance(b, list):
             return track(
                 all(self._check_yaml(v, b[i]) for i, v in enumerate(a))
+            ) and track(
+                all(self._check_yaml(v, a[i]) for i, v in enumerate(b))
             )
         elif isinstance(a, dict) and isinstance(b, dict):
             return track(
                 all(k in b and self._check_yaml(v, b[k])
                     for k, v in a.items())
+            ) and track(
+                all(k in a and self._check_yaml(v, a[k])
+                    for k, v in b.items())
             )
         return track(a == b)

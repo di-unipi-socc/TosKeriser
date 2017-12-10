@@ -40,6 +40,7 @@ app1:
         properties:
         - ports:
           - 8080: 80
+          - 8081: { get_input: port1 }
         - env_variable:
           - TEST: 'hello'
         - supported_sw:
@@ -84,6 +85,7 @@ my_group_container:
     os_distribution: Debian GNU/Linux 8 (jessie)
     ports:
       8080: 80
+      8081: { get_input: port1 }
       4000: 23
     env_variable:
       TEST: hello

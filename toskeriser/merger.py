@@ -108,7 +108,7 @@ def _merge_version(v1, v2):
 
 
 def _convert_to_list(properties):
-    if isinstance(properties, dict):
+    if isinstance(properties, dict) and 'get_input' not in properties.keys():
         return [{k: _convert_to_list(v)} for k, v in properties.items()]
     else:
         return properties
