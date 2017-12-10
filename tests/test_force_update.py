@@ -107,7 +107,7 @@ app1_container:
 app3A:
   type: tosker.nodes.Software
   requirements:
-  - host: my_group_container
+  - host: app3B
   interfaces:
     Standard:
       start:
@@ -116,32 +116,27 @@ app3A:
 app3B:
   type: tosker.nodes.Software
   requirements:
-  - host:
-      node_filter:
-        properties:
-        - supported_sw:
-          - node: 6.x
-          - ruby: 2.x
-        - os_distribution: alpine
-      node: my_group_container
+  - host: app3B_container
   interfaces:
     Standard:
       start:
         implementation: get_version.sh
 
-my_group_container:
+app3B_container:
   type: tosker.nodes.Container
   properties:
     supported_sw:
+      perl: 5.22.1
+      curl: 7.53.0
+      nano: 2.5.3
       ruby: 2.3.3
-      node: 6.9.5
-      wget: 1.25.1
-    os_distribution: Alpine Linux v3.5
+    os_distribution: Ubuntu 16.04.2 LTS
   artifacts:
     my_image:
-      file: jekyll/jekyll:builder
+      file: gitlab/gitlab-ce:9.0.10-ce.0
       type: tosker.artifacts.Image
       repository: docker_hub
+
 ''')
 
     def test_default(self):

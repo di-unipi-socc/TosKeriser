@@ -145,10 +145,11 @@ In particular the `tosker.groups.DeploymentUnit` has four constraints that must 
 #### Filter
 This phase scan all the groups and all the nodes in order to find out what has to be completed. A node is considered eligible to be updated if it:
 - is of type `tosker.nodes.Software`
+- is a bottom component
 - has a `host` require without a target node
 - is selected to be updated, by default all nodes are selected
 
-If the user uses the *force mode* the second constraint is eliminated.
+If the user uses the *force mode* the third constraint is removed.
 
 Instead, a group is eligible to be updated if at least a node in the group is eligible to be updated.
 

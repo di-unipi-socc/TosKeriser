@@ -1,0 +1,48 @@
+tosca_definitions_version: tosca_simple_yaml_1_0
+
+description: TOSCA simple profile with wordpress, web server and mysql on the same server.
+
+repositories:
+  docker_hub: https://registry.hub.docker.com/
+
+imports:
+- tosker: https://di-unipi-socc.github.io/tosker-types/1.0.0/tosker.yaml
+
+topology_template:
+  node_templates:
+    app3A:
+      type: tosker.nodes.Software
+      requirements:
+      - host: my_container
+      interfaces:
+        Standard:
+          start:
+            implementation: get_version.sh
+
+    app3B:
+      type: tosker.nodes.Software
+      requirements:
+      - host:
+          node_filter:
+            properties:
+            - supported_sw:
+              - node: 6.x
+              - ruby: 2.x
+            - os_distribution: alpine
+      interfaces:
+        Standard:
+          start:
+            implementation: get_version.sh
+
+    my_container:
+      type: tosker.nodes.Container
+      artifacts:
+        my_image:
+          file: jekyll/jekyll:3.1.6
+          type: tosker.artifacts.Image
+          repository: docker_hub
+
+  groups:
+    my_group:
+      type: tosker.groups.DeploymentUnit
+      members: [ app3A, app3B ]

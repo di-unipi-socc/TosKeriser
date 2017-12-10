@@ -115,8 +115,8 @@ def _filter_and_merge(tosca, groups, force, components):
 
         group_to_complete = False
         for m in group.members:
-            m.to_update = _must_update(m, force, components)
-            group_to_complete = m.to_update
+            m.to_update = _must_update(tosca, m, force, components)
+            group_to_complete |= m.to_update
             already_analysed.append(m.name)
             constraints.append(helper.get_host_nodefilter(m))
 
@@ -131,7 +131,7 @@ def _filter_and_merge(tosca, groups, force, components):
     # remove the node that are already processed as part of a group
     for node in (n for n in tosca.nodetemplates
                  if n.name not in already_analysed):
-        if _must_update(node, force, components):
+        if _must_update(tosca, node, force, components):
             _log.debug('node {.name} is abstract'.format(node))
             node.constraints = helper.get_host_nodefilter(node)
             to_update.append(node)
@@ -141,25 +141,26 @@ def _filter_and_merge(tosca, groups, force, components):
     return to_update
 
 
-def _must_update(node, force, components):
+def _must_update(tosca, node, force, components):
     '''
     Check if a node has to be update.
     '''
     def is_software(node):
         return True if node.type == CONST.SOFTWARE_TYPE else False
 
-    def has_requirement_key(node, key):
-        return helper.get_host_key(node, key) is not None
-
-    def has_nodefilter(node):
-        return has_requirement_key(node, 'node_filter')
-
     def has_node(node):
         return helper.get_host_node(node) is not None
+    
+    def is_bottom(node):
+        host_node = helper.get_node_from_tpl(tosca,
+            helper.get_host_node(node)
+        )
+        return host_node is None or not is_software(host_node)
 
-    if is_software(node) and\
-       (len(components) == 0 or node.name in components) and\
-       (not has_node(node) or force):
+    if is_software(node)\
+       and is_bottom(node)\
+       and (len(components) == 0 or node.name in components)\
+       and (not has_node(node) or force):
         return True
     return False
 

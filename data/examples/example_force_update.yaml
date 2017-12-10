@@ -57,7 +57,7 @@ topology_template:
     app3A:
       type: tosker.nodes.Software
       requirements:
-      - host: my_container
+      - host: app3B
       interfaces:
         Standard:
           start:
@@ -66,13 +66,7 @@ topology_template:
     app3B:
       type: tosker.nodes.Software
       requirements:
-      - host:
-          node_filter:
-            properties:
-            - supported_sw:
-              - node: 6.x
-              - ruby: 2.x
-            - os_distribution: alpine
+      - host: my_container
       interfaces:
         Standard:
           start:
@@ -85,8 +79,3 @@ topology_template:
           file: jekyll/jekyll:3.1.6
           type: tosker.artifacts.Image
           repository: docker_hub
-
-  groups:
-    my_group:
-      type: tosker.groups.DeploymentUnit
-      members: [ app3A, app3B ]
