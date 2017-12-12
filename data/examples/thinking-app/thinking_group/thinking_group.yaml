@@ -113,3 +113,8 @@ topology_template:
 
     dbvolume:
       type: tosker.nodes.Volume
+
+  groups:
+    ag:
+      type: tosker.groups.DeploymentUnit
+      members: [ gui, api ]
