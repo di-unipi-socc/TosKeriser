@@ -22,7 +22,7 @@ If you wish to reuse the tool or the sources contained in this repository, pleas
 - [Quick Guide](#quick-guide)
   * [Installation](#installation)
   * [Run specification with TosKer](#run-specification-with-tosker)
-- [Example of specification](#example-of--specification)
+- [Example of specification](#example-of-specification)
 - [Usage guide](#usage-guide)
 - [License](#license)
 
@@ -36,13 +36,13 @@ The minimum Python version supported is 2.7.
 
 After the installation it is possible to download an example from the repository and run as follows:
 ```
-wget https://github.com/di-unipi-socc/TosKeriser/blob/master/data/examples/thinking-app/thinking.csar?raw=true
+curl -LO https://github.com/di-unipi-socc/TosKeriser/raw/master/data/examples/thinking-app/thinking.csar
 
 toskerise thinking.csar --policy size
 ```
 The complete specification will be on the file `thinking.completed.csar`.
 
-### Run completed with TosKer
+### Run specification with TosKer
 The specification completed with TosKeriser can than be given to [TosKer](https://github.com/di-unipi-socc/TosKer) which will manage the actual deployment.
 
 First of all, install TosKer v1 with the following command:
