@@ -16,25 +16,25 @@ _USAGE = '''TosKeriser, a tool to complete TosKer application description with
 suitable Docker Images.
 
 toskerise FILE [COMPONENT..] [OPTIONS]
-toskerise --help|-h
 toskerise --supported_sw|-s
 toskerise --version|-v
+toskerise --help|-h
 
 FILE
   TOSCA YAML file or a CSAR to be completed
 
 COMPONENT
-  a list of component to be completed (by default all component are considered)
+  a list of the components to be completed (by default all component are considered)
 
 OPTIONS
-  --debug                              active debug mode
-  -q|--quiet                           active quiet mode
-  -i|--interactive                     active interactive mode
   -f|--force                           force the update of all containers
+  --policy=top_rated|size|most_used    ordering of the images
   --constraints=value                  constraint to give to DockerFinder
                                        (e.g. --constraints 'size<=99MB pulls>30
                                                             stars>10')
-  --policy=top_rated|size|most_used    ordering of the images
+  -i|--interactive                     active interactive mode
+  -q|--quiet                           active quiet mode
+  --debug                              active debug mode
 '''
 
 _log = None

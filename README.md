@@ -28,13 +28,13 @@ If you wish to reuse the tool or the sources contained in this repository, pleas
 
 ## Quick Guide
 ### Installation
-In is possible to install TosKeriser by using pip:
+It is possible to install TosKeriser by using pip:
 ```
 # pip install toskeriser
 ```
 The minimum Python version supported is 2.7.
 
-After the installation it is possible to download an example from the repository and run as following:
+After the installation it is possible to download an example from the repository and run as follows:
 ```
 wget https://github.com/di-unipi-socc/TosKeriser/blob/master/data/examples/thinking-app/thinking.csar?raw=true
 
@@ -45,7 +45,7 @@ The complete specification will be on the file `thinking.completed.csar`.
 ### Run completed with TosKer
 The specification completed with TosKeriser can than be given to [TosKer](https://github.com/di-unipi-socc/TosKer) which will manage the actual deployment.
 
-First of all install TosKer v1 with the folowing command:
+First of all, install TosKer v1 with the following command:
 ```
 # pip install 'tosker<2'
 ```
@@ -55,7 +55,7 @@ After the installation it is possible to run the application `thinking.completed
 tosker thinking.completed.csar create start
 ```
 
-Now thinking is deployed and it is possible to access it on the url `http://localhost:8080`.
+Now thinking is deployed and it is possible to access it on the URL `http://localhost:8080`.
 
 Instead to stop and delete the application run:
 ```
@@ -126,23 +126,25 @@ More examples can be found in the `data/examples` folder.
 ## Usage guide
 ```
 toskerise FILE [COMPONENT..] [OPTIONS]
-toskerise --help|-h
+toskerise --supported_sw|-s
 toskerise --version|-v
+toskerise --help|-h
 
 FILE
   TOSCA YAML file or a CSAR to be completed
 
 COMPONENT
-  a list of component to be completed (by default all component are considered)
+  a list of the components to be completed (by default all component are considered)
 
 OPTIONS
-  --debug                              active debug mode
-  -q|--quiet                           active quiet mode
   -i|--interactive                     active interactive mode
+  --policy=top_rated|size|most_used    ordering of the images
+  -q|--quiet                           active quiet mode
   -f|--force                           force the update of all containers
   --constraints=value                  constraint to give to DockerFinder
-                                       (e.g. --constraints 'size<=100MB pulls>30 stars>10')
-  --policy=top_rated|size|most_used    ordering of the images
+                                       (e.g. --constraints 'size<=99MB pulls>30
+                                                            stars>10')
+  --debug                              active debug mode
 ```
 
 ## License

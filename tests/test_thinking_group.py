@@ -7,37 +7,23 @@ class TestThinking(TestUpper):
 
     @classmethod
     def setUpClass(self):
-        self._file_path = 'data/examples/thinking-app/thinking.csar'
-        self._new_path = 'data/examples/thinking-app/thinking.completed.csar'
+        self._file_path = 'data/examples/thinking-app/thinking_group.csar'
+        self._new_path = 'data/examples/thinking-app/thinking_group.completed.csar'
         self._mock_responces = {
-            'mvn=3&java=1.8&git=': {
+            'mvn=3&java=1.8&node=6&npm=3&git=': {
                 'count': 1,
                 'images': [
                     {
-                        'name': 'stephenreed/jenkins-java8-maven-git:latest',
+                        'name': 'crossenv/node-maven:latest',
                         'softwares': [
                             {'software': 'java', 'ver': '1.8.0'},
                             {'software': 'mvn', 'ver': '3.2.2'},
-                            {'software': 'git', 'ver': '1.9.1'}
-                        ],
-                        'distro': 'Ubuntu 14.04.5 LTS',
-                        'size': 20000000,
-                        'pulls': 200,
-                        'stars': 23
-                    }
-                ]
-            },
-            'node=6&npm=3&git=': {
-                'count': 1,
-                'images': [
-                    {
-                        'name': 'jekyll/jekyll:builder',
-                        'softwares': [
+                            {'software': 'git', 'ver': '1.9.1'},
                             {'software': 'node', 'ver': '6.9.5'},
                             {'software': 'npm', 'ver': '3.10.10'},
                             {'software': 'git', 'ver': '2.11.2'}
                         ],
-                        'distro': 'Alpine Linux v3.5',
+                        'distro': 'Ubuntu 14.04.5 LTS',
                         'size': 20000000,
                         'pulls': 200,
                         'stars': 23
@@ -58,7 +44,7 @@ class TestThinking(TestUpper):
               - mvn: 3.x
               - java: 1.8.x
               - git: x
-          node: api_container
+          node: ag_container
       - connection: mongodb
       interfaces:
         Standard:
@@ -93,7 +79,7 @@ class TestThinking(TestUpper):
               - node: 6.x
               - npm: 3.x
               - git: x
-          node: gui_container
+          node: ag_container
       - dependency: api
       interfaces:
         Standard:
@@ -132,34 +118,23 @@ class TestThinking(TestUpper):
 
     dbvolume:
       type: tosker.nodes.Volume
-    api_container:
+
+    ag_container:
       type: tosker.nodes.Container
       properties:
         supported_sw:
           java: 1.8.0
           mvn: 3.2.2
-          git: 1.9.1
+          git: 2.11.2
+          npm: 3.10.10
+          node: 6.9.5
         os_distribution: Ubuntu 14.04.5 LTS
         ports:
+          3000: {get_input: gui_port}
           8080: {get_input: api_port}
       artifacts:
         my_image:
-          file: stephenreed/jenkins-java8-maven-git:latest
-          type: tosker.artifacts.Image
-          repository: docker_hub
-    gui_container:
-      type: tosker.nodes.Container
-      properties:
-        supported_sw:
-          npm: 3.10.10
-          node: 6.9.5
-          git: 2.11.2
-        os_distribution: Alpine Linux v3.5
-        ports:
-          3000: {get_input: gui_port}
-      artifacts:
-        my_image:
-          file: jekyll/jekyll:builder
+          file: crossenv/node-maven:latest
           type: tosker.artifacts.Image
           repository: docker_hub
 ''')
