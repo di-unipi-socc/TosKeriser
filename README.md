@@ -2,67 +2,78 @@
 [![pipy](https://img.shields.io/pypi/v/toskeriser.svg)](https://pypi.python.org/pypi/toskeriser)
 [![travis](https://travis-ci.org/di-unipi-socc/TosKeriser.svg?branch=master)](https://travis-ci.org/di-unipi-socc/TosKeriser)
 
-TosKeriser is a tool to complete [TosKer](https://github.com/di-unipi-socc/TosKer) applications with suitable Docker Images. The user can specify the software required by each component and the tool complete the specification with a suitable container to run the components.
+TosKeriser is a tool for automatically completing TOSCA application specifications, which can automatically discover the Docker-based runtime environments that provide the software support needed by the application components.
 
-It was first presented in
+Users can specify the components forming an application, as well as the software distributions they require by exploiting a predefined set of [TOSCA types](https://di-unipi-socc.github.io/tosker-types/). They can then run TosKeriser, which will complete the specification with the Docker containers offering the software needed by (groups of) components. Obtained specification can then be run with [TosKer](https://github.com/di-unipi-socc/TosKer).
+
+TosKeriser was first presented in
 > _A. Brogi, D, Neri, L. Rinaldi, J. Soldani <br/>
 > **From (incomplete) TOSCA specifications to running applications, with Docker.** <br/>
-> Submitted for publication_
+> In: A. Cerone and M. Roveri (eds.), SEFM 2017 Workshops. LNCS, Springer [In press]_
 
 If you wish to reuse the tool or the sources contained in this repository, please properly cite the above mentioned paper. Below you can find the BibTex reference:
 ```
-@misc{TosKeriser,
+@inproceedings{TosKeriser,
   author = {Antonio Brogi and Davide Neri and Luca Rinaldi and Jacopo Soldani},
   title = {{F}rom (incomplete) {TOSCA} specifications to running applications, with {D}ocker,
-  note = {{\em [Submitted for publication]}}
+  editor = {A. Cerone and M. Roveri (eds.)}, 
+  booktitle = {SEFM 2017 Workshops},
+  series = {LNCS}, 
+  publisher = {Springer},
+  note = {{\em [In press]}}
 }
 ```
 
 ## Table of Contents
 - [Quick Guide](#quick-guide)
   * [Installation](#installation)
-  * [Run specification with TosKer](#run-specification-with-tosker)
-- [Example of specification](#example-of-specification)
+  * [Example of run of TosKeriser](#example-of-run-of-toskeriser)
+  * [Running completed specifications with TosKer](#running-completed-specifications-with-tosker)
+- [Example of to-be-completed specifications](#example-of-to-be-completed-specifications)
 - [Usage guide](#usage-guide)
 - [License](#license)
 
 ## Quick Guide
 ### Installation
-It is possible to install TosKeriser by using pip:
+TosKeriser can be installed by using pip:
 ```
 # pip install toskeriser
 ```
-The minimum Python version supported is 2.7.
+(It requires Python version 2.7 or later).
 
-After the installation it is possible to download an example from the repository and run as follows:
+### Example of run of TosKeriser 
+Examples of (incomplete) specifications are available in the [data/examples](https://github.com/di-unipi-socc/TosKeriser/tree/master/data/examples) folder.
+
+To run TosKeriser to complete one of them, one just needs to download one of them:
 ```
 curl -LO https://github.com/di-unipi-socc/TosKeriser/raw/master/data/examples/thinking-app/thinking.csar
-
+```
+and to run TosKeriser on the downloaded file:
+```
 toskerise thinking.csar --policy size
 ```
-The complete specification will be on the file `thinking.completed.csar`.
+The completed specification will be contained in `thinking.completed.csar`.
 
-### Run specification with TosKer
-The specification completed with TosKeriser can than be given to [TosKer](https://github.com/di-unipi-socc/TosKer) which will manage the actual deployment.
+### Running completed specifications with TosKer
+Specifications completed with TosKeriser can than be given to [TosKer](https://github.com/di-unipi-socc/TosKer), which will manage their actual deployment.
 
 First of all, install TosKer v1 with the following command:
 ```
 # pip install 'tosker<2'
 ```
 
-After the installation it is possible to run the application `thinking.completed` with the following command:
+After the installation it is possible to run the application `thinking.completed.csar` with the following command:
 ```
 tosker thinking.completed.csar create start
 ```
+As a result, a concrete instance of the application is deployed, and it can be accessed at `http://localhost:8080`.
 
-Now thinking is deployed and it is possible to access it on the URL `http://localhost:8080`.
-
-Instead to stop and delete the application run:
+Instead, to stop and delete the application run:
 ```
 tosker thinking.completed.csar stop delete
 ```
 
-## Example of specification
+## Example of to-be-completed specifications
 For instance the following application has a components called `server` require a set of software (node>=6.2, ruby>2 and any version of wget) and Alpine as Linux distribution.
 ```
 ...
