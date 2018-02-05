@@ -15,7 +15,7 @@ If you wish to reuse the tool or the sources contained in this repository, pleas
 ```
 @inproceedings{TosKeriser,
   author = {Antonio Brogi and Davide Neri and Luca Rinaldi and Jacopo Soldani},
-  title = {{F}rom (incomplete) {TOSCA} specifications to running applications, with {D}ocker,
+  title = {{F}rom (incomplete) {TOSCA} specifications to running applications, with {D}ocker},
   editor = {A. Cerone and M. Roveri (eds.)}, 
   booktitle = {SEFM 2017 Workshops},
   series = {LNCS}, 
