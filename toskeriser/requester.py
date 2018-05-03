@@ -1,28 +1,35 @@
 import requests
 
-from .exceptions import TkStackException
+from .exceptions import TkException
 from .helper import CONST, Logger
 
 
 def search_images(query, df_host):
-    json = _request(df_host, CONST.DF_SEARCH, query)
-    if 'images' in json:
+    try:
+        json = _request(df_host, CONST.DF_SEARCH, query)
         return json['count'], json['images']
-    raise TkStackException('Dockerfinder server error')
+    except (TkException, KeyError):
+        raise TkException('Dockerfinder server error')
 
 
 def get_software(df_host):
-    json = _request(df_host, CONST.DF_SOFTWARE)
-    if 'software' in json:
+    try:
+        json = _request(df_host, CONST.DF_SOFTWARE)
         return [s['name'] for s in json['software']]
-    raise TkStackException('Dockerfinder server error')
+    except (TkException, KeyError):
+        raise TkException('Dockerfinder software service do not respond')
 
 
 def _request(df_host, endpoint, params={}):
     _log = Logger.get(__name__)
     url = df_host + endpoint
-    ret = requests.get(url, params=params,
-                       headers={'Accept': 'applicaiton/json',
-                                'Content-type': 'application/json'})
-    _log.debug('request done on url {}'.format(ret.url))
+    try:
+        ret = requests.get(url, params=params,
+                           headers={'Accept': 'applicaiton/json',
+                                    'Content-type': 'application/json'},
+                           timeout=1)
+        _log.debug('request done on url {}'.format(ret.url))
+    except requests.exceptions.RequestException as e:
+        _log.debug('Request error: %s', e)
+        raise TkException('Request to Dockerfinder fails.')
     return ret.json()
