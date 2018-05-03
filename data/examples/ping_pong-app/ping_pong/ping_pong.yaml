@@ -1,0 +1,120 @@
+tosca_definitions_version: tosca_simple_yaml_1_0
+
+description: Ping pong over proxy
+
+repositories:
+  docker_hub: https://registry.hub.docker.com/
+
+imports:
+- tosker: https://di-unipi-socc.github.io/tosker-types/1.0.0/tosker.yaml
+
+topology_template:
+  inputs:
+    ext_port:
+      type: integer
+      default: 80
+      description: Application external port
+    proxy_endpoint:
+      type: string
+      default: proxy:81
+    pong_endpoint:
+      type: string
+      default: pong:82
+
+  node_templates:
+    ping:
+      type: tosker.nodes.Software
+      requirements:
+        - host:
+            node_filter:
+              properties:
+              - supported_sw:
+                - npm: 5.x
+                - node: 8.x
+                - tar: x
+              - ports:
+                - 8080: { get_input: ext_port }
+        - connection: proxy
+      artifacts:
+        code: artifacts/ping.tar
+      interfaces:
+        Standard:
+          create:
+            implementation: scripts/ping/create.sh
+            inputs:
+              code: { get_artifact: [SELF, code] }
+          configure:
+            implementation: scripts/ping/configure.sh
+            inputs:
+              port: 8080
+              proxy: { get_input: proxy_endpoint }
+          start:
+            implementation: scripts/ping/start.sh
+          stop:
+            implementation: scripts/ping/stop.sh
+          delete:
+            implementation: scripts/ping/delete.sh
+
+    proxy:
+        type: tosker.nodes.Software
+        requirements:
+          - host:
+              node_filter:
+                properties:
+                - supported_sw:
+                  - go: 1.8.x
+                  - tar: x
+          - connection: pong
+        artifacts:
+          code: artifacts/proxy.tar
+        interfaces:
+          Standard:
+            create:
+              implementation: scripts/proxy/create.sh
+              inputs:
+                code: { get_artifact: [SELF, code] }
+            configure:
+              implementation: scripts/proxy/configure.sh
+              inputs:
+                port: 81
+                pong: { get_input: pong_endpoint }
+            start:
+              implementation: scripts/proxy/start.sh
+            stop:
+              implementation: scripts/proxy/stop.sh
+            delete:
+              implementation: scripts/proxy/delete.sh
+
+    pong:
+      type: tosker.nodes.Software
+      requirements:
+        - host:
+            node_filter:
+              properties:
+              - supported_sw:
+                - python: 3.x
+                - pip: x
+                - tar: x
+      artifacts:
+        code: artifacts/pong.tar
+      interfaces:
+        Standard:
+          create:
+            implementation: scripts/pong/create.sh
+            inputs:
+              code: { get_artifact: [SELF, code] }
+          configure:
+            implementation: scripts/pong/configure.sh
+            inputs:
+              port: 82
+          start:
+            implementation: scripts/pong/start.sh
+          stop:
+            implementation: scripts/pong/stop.sh
+          delete:
+            implementation: scripts/pong/delete.sh
+
+  groups:
+    my_group:
+      type: tosker.groups.DeploymentUnit
+      members: [ proxy, pong ]
