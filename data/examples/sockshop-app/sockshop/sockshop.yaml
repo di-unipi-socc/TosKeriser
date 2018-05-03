@@ -124,9 +124,8 @@ topology_template:
             node_filter:
               properties:
               - supported_sw:
-                - mvn: 3.x
                 - java: 1.8.x
-                - git: x
+              - command: 'true'
         - connection: carts-db
       artifacts:
         jar: artifacts/carts.jar
@@ -200,9 +199,8 @@ topology_template:
             node_filter:
               properties:
               - supported_sw:
-                - mvn: 3.x
                 - java: 1.8.x
-                - git: x
+              - command: 'true'
         - connection: rabbitmq
       artifacts:
         jar: artifacts/shipping.jar

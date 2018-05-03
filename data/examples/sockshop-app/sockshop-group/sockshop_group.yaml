@@ -6,7 +6,7 @@ repositories:
   docker_hub: https://registry.hub.docker.com/
 
 imports:
-  - tosker: https://di-unipi-socc.github.io/tosker-types/tosker.yaml
+- tosker: https://di-unipi-socc.github.io/tosker-types/1.0.0/tosker.yaml
 
 topology_template:
   inputs:
@@ -16,30 +16,30 @@ topology_template:
       description: Application external port
     payment_endpoint:
       type: string
-      default: payment:81
+      default: payment
     catalogue_endpoint:
       type: string
-      default: catalogue:82
+      default: catalogue
     user_endpoint:
       type: string
-      default: user:83
+      default: user:82
     carts_endpoint:
       type: string
-      default: carts:84
+      default: carts:83
     orders_endpoint:
       type: string
-      default: orders:85
+      default: orders:81
     shipping_endpoint:
       type: string
-      default: shipping:86
+      default: shipping
 
   groups:
-    group-java:
+    my_group1:
       type: tosker.groups.DeploymentUnit
-      members: [ carts, orders, shipping ]
-    group-go:
+      members: [ front-end, catalogue ]
+    my_group2:
       type: tosker.groups.DeploymentUnit
-      members: [ payment, catalogue, user ]
+      members: [ orders, user, carts ]
 
   node_templates:
 # Software
@@ -94,7 +94,7 @@ topology_template:
           start:
             implementation: scripts/catalogue/start.sh
             inputs:
-              port: 82
+              port: 80
           stop:
             implementation: scripts/catalogue/stop.sh
           delete:
@@ -119,7 +119,7 @@ topology_template:
             inputs:
               database: mongodb
               mongohost: user-db
-              port: 83
+              port: 82
           stop:
             implementation: scripts/user/stop.sh
           delete:
@@ -132,9 +132,8 @@ topology_template:
             node_filter:
               properties:
               - supported_sw:
-                - mvn: 3.x
                 - java: 1.8.x
-                - git: x
+              - command: 'true'
         - connection: carts-db
       artifacts:
         jar: artifacts/carts.jar
@@ -143,7 +142,7 @@ topology_template:
           start:
             implementation: scripts/carts/start.sh
             inputs:
-              port: 84
+              port: 83
               jar: { get_artifact: [ SELF, jar ] }
           stop:
             implementation: scripts/carts/stop.sh
@@ -173,7 +172,7 @@ topology_template:
           start:
             implementation: scripts/orders/start.sh
             inputs:
-              port: 85
+              port: 81
           stop:
             implementation: scripts/orders/stop.sh
           delete:
@@ -195,7 +194,7 @@ topology_template:
           start:
             implementation: scripts/payment/start.sh
             inputs:
-              port: 81
+              port: 80
           stop:
             implementation: scripts/payment/stop.sh
           delete:
@@ -208,9 +207,8 @@ topology_template:
             node_filter:
               properties:
               - supported_sw:
-                - mvn: 3.x
                 - java: 1.8.x
-                - git: x
+              - command: 'true'
         - connection: rabbitmq
       artifacts:
         jar: artifacts/shipping.jar
@@ -219,7 +217,7 @@ topology_template:
           start:
             implementation: scripts/shipping/start.sh
             inputs:
-              port: 86
+              port: 80
               jar: { get_artifact: [ SELF, jar ] }
           stop:
             implementation: scripts/shipping/stop.sh
