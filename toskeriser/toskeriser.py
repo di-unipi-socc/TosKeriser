@@ -150,11 +150,12 @@ def _must_update(tosca, node, force, components):
 
     def has_node(node):
         return helper.get_host_node(node) is not None
-    
+
     def is_bottom(node):
-        host_node = helper.get_node_from_tpl(tosca,
-            helper.get_host_node(node)
-        )
+        host_node = helper.get_node_from_tpl(
+                        tosca,
+                        helper.get_host_node(node)
+                    )
         return host_node is None or not is_software(host_node)
 
     if is_software(node)\
