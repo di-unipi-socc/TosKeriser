@@ -1,12 +1,10 @@
 import json
-import logging
 from sys import argv
 
 from six import print_
 from tabulate import tabulate
 
 from toskeriser import requester
-from toskeriser.helper import Logger
 
 if len(argv) < 2:
     print_('ERROR: parameter error.\n{} SOFTWARE [POLICY]'.format(argv[0]))
@@ -21,7 +19,8 @@ for sw in argv[1].split(','):
     else:
         params[sw] = ''
 
-params['sort'] = argv[2].split(',') if len(argv) > 2 else ('stars', 'pulls', '-size')
+params['sort'] = argv[2].split(',') if len(argv) > 2\
+                                    else ('stars', 'pulls', '-size')
 
 # print_('DEBUG', params)
 # Logger.set_logger(logging.DEBUG)
@@ -30,7 +29,7 @@ count, images = requester.search_images(params, 'http://black.di.unipi.it')
 print_('#images', count)
 table = tabulate(
     [[i+1, img['name'], img['size']/1000/1000, img['pulls'], img['stars']]
-    for i, img in enumerate(images[:10])],
+     for i, img in enumerate(images[:10])],
     headers=['#', 'Name', 'Size (MB)', 'Pulls', 'Stars'])
 print_(table)
 try:
