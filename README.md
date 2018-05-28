@@ -39,7 +39,7 @@ TosKeriser can be installed by using pip:
 ```
 # pip install toskeriser
 ```
-(It requires Python version 2.7 or later).
+(It requires Python 2.7 or Python 3.4+).
 
 ### Example of run of TosKeriser 
 Examples of (incomplete) specifications are available in the [data/examples](https://github.com/di-unipi-socc/TosKeriser/tree/master/data/examples) folder.
