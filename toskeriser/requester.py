@@ -27,7 +27,7 @@ def _request(df_host, endpoint, params={}):
         ret = requests.get(url, params=params,
                            headers={'Accept': 'applicaiton/json',
                                     'Content-type': 'application/json'},
-                           timeout=1)
+                           timeout=5)
         _log.debug('request done on url {}'.format(ret.url))
     except requests.exceptions.RequestException as e:
         _log.debug('Request error: %s', e)
