@@ -1,6 +1,9 @@
 TosKeriser
 ==========
 
+`pipy <https://pypi.python.org/pypi/toskeriser>`__
+`travis <https://travis-ci.org/di-unipi-socc/TosKeriser>`__
+
 TosKeriser is a tool for automatically completing TOSCA application
 specifications, which can automatically discover the Docker-based
 runtime environments that provide the software support needed by the
@@ -62,7 +65,7 @@ TosKeriser can be installed by using pip:
 
    # pip install toskeriser
 
-(It requires Python version 2.7 or later).
+(It requires Python 2.7 or Python 3.4+).
 
 Example of run of TosKeriser
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
