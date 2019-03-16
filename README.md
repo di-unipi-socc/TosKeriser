@@ -8,19 +8,20 @@ Users can specify the components forming an application, as well as the software
 
 TosKeriser was first presented in
 > _A. Brogi, D, Neri, L. Rinaldi, J. Soldani <br/>
-> **From (incomplete) TOSCA specifications to running applications, with Docker.** <br/>
-> In: A. Cerone and M. Roveri (eds.), SEFM 2017 Workshops. LNCS, Springer [In press]_
+> **Orchestrating incomplete TOSCA applications with Docker.** <br/>
+> Science of Computer Programming, volume 166, pages 194-213, 2018 
 
 If you wish to reuse the tool or the sources contained in this repository, please properly cite the above mentioned paper. Below you can find the BibTex reference:
 ```
-@inproceedings{TosKeriser,
+@article{toskeriser,
   author = {Antonio Brogi and Davide Neri and Luca Rinaldi and Jacopo Soldani},
-  title = {{F}rom (incomplete) {TOSCA} specifications to running applications, with {D}ocker},
-  editor = {A. Cerone and M. Roveri (eds.)}, 
-  booktitle = {SEFM 2017 Workshops},
-  series = {LNCS}, 
-  publisher = {Springer},
-  note = {{\em [In press]}}
+  title = {Orchestrating incomplete {TOSCA} applications with {D}ocker},
+  journal = {Science of Computer Programming},
+  volume = {166},
+  pages = {194-213},
+  year = {2018},
+  issn = {0167-6423},
+  doi = {10.1016/j.scico.2018.07.005}
 }
 ```
 
